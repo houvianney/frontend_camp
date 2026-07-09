@@ -53,6 +53,7 @@ export default function ControleurScan() {
   const [resultat, setResultat] = useState<LookupResult | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerStartedRef = useRef(false);
 
   useEffect(() => {
     if (!scanning) return;
@@ -65,20 +66,38 @@ export default function ControleurScan() {
         { facingMode: 'environment' },
         { fps: 10, qrbox: 250 },
         async (decodedText) => {
-          await scanner.stop();
-          setScanning(false);
-          await lookup(decodedText);
+          try {
+            console.log('QR decoded:', decodedText);
+            await scanner.stop().catch(() => {});
+            setScanning(false);
+            await lookup(decodedText);
+          } catch (e) {
+            console.error('Error handling decoded QR:', e);
+            setMessage({ type: 'error', text: 'Erreur interne lors du traitement du QR' });
+            setScanning(false);
+          }
         },
         () => {
           // erreur de frame ignorée: le scan continue
         },
       )
-      .catch(() => setMessage({ type: 'error', text: "Impossible d'accéder à la caméra" }));
+      .then(() => {
+        scannerStartedRef.current = true;
+      })
+      .catch((err) => {
+        console.error('Html5Qrcode start error:', err);
+        setMessage({ type: 'error', text: "Impossible d'accéder à la caméra. Vérifiez les permissions et réessayez." });
+        setScanning(false);
+      });
 
     return () => {
-      scanner.stop().catch(() => {
-        /* ignore */
-      });
+      if (scannerRef.current && scannerStartedRef.current) {
+        scannerRef.current.stop().catch(() => {
+          /* ignore */
+        });
+      }
+      scannerRef.current = null;
+      scannerStartedRef.current = false;
     };
   }, [scanning]);
 
@@ -154,7 +173,21 @@ export default function ControleurScan() {
 
         <div id={SCANNER_ELEMENT_ID} style={{ width: '100%', minHeight: 360, borderRadius: 18, overflow: 'hidden', background: '#fff' }} />
 
-        {message && <div className={`alert alert-${message.type}`}>{message.text}</div>}
+        {!resultat && scanning && !message && (
+          <div style={{ textAlign: 'center', padding: 12 }} className="small-text">
+            Attente du flux caméra... si rien n’apparaît, vérifiez les permissions du navigateur.
+          </div>
+        )}
+
+        {!resultat && !scanning && !message && (
+          <div style={{ textAlign: 'center', marginTop: 12 }}>
+            <button className="btn" onClick={() => { setMessage(null); setScanning(true); }}>
+              Réessayer la caméra
+            </button>
+          </div>
+        )}
+
+        {message && <div style={{ marginTop: 12 }} className={`alert alert-${message.type}`}>{message.text}</div>}
       </section>
 
       {resultat && (
