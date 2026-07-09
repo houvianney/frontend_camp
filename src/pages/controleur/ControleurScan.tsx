@@ -82,8 +82,27 @@ export default function ControleurScan() {
     };
   }, [scanning]);
 
-  async function lookup(qrCode: string) {
+  async function lookup(qrCodeRaw: string) {
     setMessage(null);
+    let qrCode = qrCodeRaw;
+
+    // Si le QR contient une URL (par ex un lien imprimé sur le badge),
+    // extraire le token utile (supporte /participant/:token ou dernier segment).
+    if (/^https?:\/\//i.test(qrCodeRaw)) {
+      try {
+        const u = new URL(qrCodeRaw);
+        const parts = u.pathname.split('/').filter(Boolean);
+        if (parts.length >= 2 && parts[0] === 'participant') {
+          qrCode = parts[1];
+        } else if (parts.length > 0) {
+          qrCode = parts[parts.length - 1];
+        }
+      } catch (e) {
+        // si parsing échoue, on garde la valeur brute
+        qrCode = qrCodeRaw;
+      }
+    }
+
     try {
       const { data } = await api.post<LookupResult>('/distributions/scan', { qrCode });
       setResultat(data);
