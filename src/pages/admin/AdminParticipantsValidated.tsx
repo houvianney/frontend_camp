@@ -88,6 +88,82 @@ export default function AdminParticipantsValidated() {
     }
   }
 
+  // Admin: add/edit/delete participant
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [formNom, setFormNom] = useState('');
+  const [formPrenom, setFormPrenom] = useState('');
+  const [formAge, setFormAge] = useState('');
+  const [formSexe, setFormSexe] = useState('');
+  const [formProfession, setFormProfession] = useState('');
+  const [formContact, setFormContact] = useState('');
+  const [formType, setFormType] = useState('PARTICIPANT');
+  const [formTypeStaff, setFormTypeStaff] = useState('');
+  const [formMontant, setFormMontant] = useState('0');
+  const [formLocaliteId, setFormLocaliteId] = useState('');
+
+  async function supprimerParticipant(id: string) {
+    if (!window.confirm('Supprimer ce participant ?')) return;
+    try {
+      await api.delete(`/participants/${id}`);
+      await charger();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.message || 'Erreur lors de la suppression');
+    }
+  }
+
+  function commencerEdition(p: Participant) {
+    setEditId(p.id);
+    setFormNom(p.nom || '');
+    setFormPrenom(p.prenom || '');
+    setFormAge(p.age ? String(p.age) : '');
+    setFormSexe(p.sexe || '');
+    setFormProfession(p.profession || '');
+    setFormContact(p.contact || '');
+    setFormType(p.typeParticipant || 'PARTICIPANT');
+    setFormTypeStaff(p.typeStaff || '');
+    setFormMontant(String(Number(p.montantPaye || 0)));
+    setFormLocaliteId(p.localite?.id || '');
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function submitForm(e?: any) {
+    if (e && e.preventDefault) e.preventDefault();
+
+    if (!formNom.trim() || !formPrenom.trim() || !formSexe || !formContact.trim() || !formType || Number(formMontant) <= 0 || !formLocaliteId) {
+      alert('Veuillez renseigner tous les champs obligatoires : Nom, Prénom, Sexe, Contact, Montant, Type et Localité.');
+      return;
+    }
+
+    try {
+      if (editId) {
+        await api.patch(`/participants/${editId}`, {
+          nom: formNom.trim(), prenom: formPrenom.trim(), age: Number(formAge) || undefined,
+          sexe: formSexe || undefined, profession: formProfession || undefined,
+          contact: formContact.trim(), typeParticipant: formType, typeStaff: formType === 'STAFF' ? formTypeStaff : undefined,
+          montantPaye: Number(formMontant) || 0,
+        });
+      } else {
+        await api.post('/participants', {
+          nom: formNom.trim(), prenom: formPrenom.trim(), age: Number(formAge) || undefined,
+          sexe: formSexe || undefined, profession: formProfession || undefined,
+          contact: formContact.trim(), typeParticipant: formType, typeStaff: formType === 'STAFF' ? formTypeStaff : undefined,
+          montantTotal: Number(formMontant) || 0, montantPaye: Number(formMontant) || 0, localiteId: formLocaliteId,
+        });
+      }
+      // reset form
+      setEditId(null);
+      setShowAddForm(false);
+      setFormNom(''); setFormPrenom(''); setFormAge(''); setFormSexe(''); setFormProfession(''); setFormContact(''); setFormType('PARTICIPANT'); setFormTypeStaff(''); setFormMontant('0'); setFormLocaliteId('');
+      await charger();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.message || 'Erreur lors de l\'enregistrement');
+    }
+  }
+
   async function imprimerBadges() {
     if (!selectedPrint.length) return;
     try {
@@ -343,6 +419,40 @@ export default function AdminParticipantsValidated() {
 
       {loading ? <p className="small-text">Chargement...</p> : (
         <section className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h2 className="section-title">Participants validés</h2>
+            <div>
+              <button className="btn btn-primary" onClick={() => setShowAddForm((v) => !v)}>{showAddForm ? 'Annuler' : 'Ajout un participant'}</button>
+            </div>
+          </div>
+
+          {showAddForm && (
+            <form onSubmit={submitForm} className="card" style={{ padding: 12, marginBottom: 12 }}>
+              <div className="form-row inline">
+                <label>Nom * <input className="input" value={formNom} onChange={(e) => setFormNom(e.target.value)} /></label>
+                <label>Prénom * <input className="input" value={formPrenom} onChange={(e) => setFormPrenom(e.target.value)} /></label>
+                <label>Âge <input className="input" type="number" value={formAge} onChange={(e) => setFormAge(e.target.value)} /></label>
+              </div>
+              <div className="form-row inline">
+                <label>Sexe * <select className="input" value={formSexe} onChange={(e) => setFormSexe(e.target.value)}><option value="">Sélectionner</option><option value="M">Masculin</option><option value="F">Féminin</option></select></label>
+                <label>Type * <select className="input" value={formType} onChange={(e) => setFormType(e.target.value)}><option value="PARTICIPANT">Participant</option><option value="STAFF">Staff</option><option value="ENSEIGNANT">Enseignant</option><option value="VOLONTAIRE">Volontaire</option></select></label>
+                <label>Type staff <input className="input" value={formTypeStaff} onChange={(e) => setFormTypeStaff(e.target.value)} /></label>
+              </div>
+              <div className="form-row inline">
+                <label>Contact * <input className="input" value={formContact} onChange={(e) => setFormContact(e.target.value)} /></label>
+                <label>Montant payé * <input className="input" type="number" value={formMontant} onChange={(e) => setFormMontant(e.target.value)} /></label>
+                <label>Localité * <select className="input" value={formLocaliteId} onChange={(e) => setFormLocaliteId(e.target.value)}>
+                  <option value="">Sélectionner</option>
+                  {localites.map((l) => (<option key={l.id} value={l.id}>{l.nom}</option>))}
+                </select></label>
+              </div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary" type="submit">{editId ? 'Enregistrer' : 'Ajouter'}</button>
+                {editId && <button type="button" className="btn" onClick={() => { setEditId(null); setShowAddForm(false); }}>Annuler</button>}
+              </div>
+            </form>
+          )}
+
           <div className="table-wrapper">
             <table className="table">
               <thead>
@@ -387,6 +497,12 @@ export default function AdminParticipantsValidated() {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button className="btn btn-success" onClick={() => regenerer(p.id)}>
                           Régénérer badge
+                        </button>
+                        <button className="btn" onClick={() => commencerEdition(p)}>
+                          Modifier
+                        </button>
+                        <button className="btn btn-danger" onClick={() => supprimerParticipant(p.id)}>
+                          Supprimer
                         </button>
                       </div>
                     </td>

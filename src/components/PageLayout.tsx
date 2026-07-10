@@ -81,7 +81,7 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
 };
 
 export default function PageLayout({ title, children, actions }: PageLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, showIdleWarning, keepAlive } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [openParents, setOpenParents] = useState<Record<string, boolean>>({});
@@ -172,6 +172,19 @@ export default function PageLayout({ title, children, actions }: PageLayoutProps
         </header>
         {children}
       </main>
+      {showIdleWarning && (
+        <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+          <div style={{ background: 'rgba(0,0,0,0.35)', position: 'absolute', inset: 0 }} onClick={() => { /* click outside does nothing */ }} />
+          <div style={{ position: 'relative', background: 'white', padding: 20, borderRadius: 12, width: 420, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', zIndex: 1110 }}>
+            <h3 style={{ marginTop: 0 }}>Votre session va expirer</h3>
+            <p style={{ marginBottom: 12 }}>Vous serez déconnecté dans quelques minutes sans activité. Voulez-vous rester connecté ?</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn" onClick={() => { logout(); }} style={{ background: '#ef4444', color: 'white' }}>Se déconnecter</button>
+              <button type="button" className="btn btn-primary" onClick={() => { keepAlive(); }}>Rester connecté</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

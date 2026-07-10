@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { api, getPublicAssetUrl } from '../../lib/api';
 import PageLayout from '../../components/PageLayout';
 
 interface RessourceRecue {
@@ -145,7 +145,7 @@ export default function ParticipantEspace() {
               <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
                 {album.photos.map((photo) => (
-                  <img key={photo.id} src={photo.url} alt={album.titre} className="responsive" style={{ borderRadius: 18, maxHeight: 180, objectFit: 'cover' }} />
+                  <img key={photo.id} src={getPublicAssetUrl(photo.url)} alt={album.titre} className="responsive" style={{ borderRadius: 18, maxHeight: 180, objectFit: 'cover' }} />
                 ))}
               </div>
             </div>

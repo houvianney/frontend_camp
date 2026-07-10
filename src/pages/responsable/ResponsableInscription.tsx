@@ -36,6 +36,7 @@ export default function ResponsableInscription() {
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [ajouts, setAjouts] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const staffTypes = ['Media', 'Cuisine', 'Accueil', 'Sécurité', 'Prestations', 'Inscription', 'Organisateurs'];
 
@@ -84,20 +85,40 @@ export default function ResponsableInscription() {
     }
 
     try {
-      await api.post('/participants', {
-        nom: nom.trim(),
-        prenom: prenom.trim(),
-        age: Number(age),
-        sexe,
-        profession: profession.trim() || undefined,
-        adresse: adresse.trim() || undefined,
-        contact: contact.trim(),
-        membreOng,
-        typeParticipant,
-        typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
-        montantTotal: 0,
-        montantPaye: Number(montantInitial) || 0,
-      });
+      if (editingId) {
+        await api.patch(`/participants/${editingId}`, {
+          nom: nom.trim(),
+          prenom: prenom.trim(),
+          age: Number(age),
+          sexe,
+          profession: profession.trim() || undefined,
+          adresse: adresse.trim() || undefined,
+          contact: contact.trim(),
+          membreOng,
+          typeParticipant,
+          typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
+          montantTotal: 0,
+          montantPaye: Number(montantInitial) || 0,
+        });
+        setMessage('Participant modifié avec succès.');
+      } else {
+        await api.post('/participants', {
+          nom: nom.trim(),
+          prenom: prenom.trim(),
+          age: Number(age),
+          sexe,
+          profession: profession.trim() || undefined,
+          adresse: adresse.trim() || undefined,
+          contact: contact.trim(),
+          membreOng,
+          typeParticipant,
+          typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
+          montantTotal: 0,
+          montantPaye: Number(montantInitial) || 0,
+        });
+        setMessage('Participant ajouté avec succès.');
+      }
+
       setNom('');
       setPrenom('');
       setAge('');
@@ -110,7 +131,7 @@ export default function ResponsableInscription() {
       setTypeStaff('');
       setMontantInitial('');
       setErrors({});
-      setMessage('Participant ajouté avec succès.');
+      setEditingId(null);
       setMessageType('success');
       await charger();
     } catch (err: any) {
@@ -119,6 +140,23 @@ export default function ResponsableInscription() {
       setMessageType('error');
       console.error('Erreur:', err);
     }
+  }
+
+  function commencerEdition(p: Participant) {
+    if (p.statut !== 'EN_ATTENTE') return;
+    setEditingId(p.id);
+    setNom(p.nom);
+    setPrenom(p.prenom);
+    setAge(p.age ? String(p.age) : '');
+    setSexe(p.sexe || '');
+    setProfession(p.profession || '');
+    setAdresse(p.adresse || '');
+    setContact(p.contact || '');
+    setMembreOng(Boolean(p.membreOng));
+    setTypeParticipant(p.typeParticipant || 'PARTICIPANT');
+    setTypeStaff(p.typeStaff || '');
+    setMontantInitial(String(Number(p.montantPaye || 0)));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function updateMontant(id: string) {
@@ -392,6 +430,9 @@ export default function ResponsableInscription() {
                       />
                       <button className="btn btn-success" onClick={() => updateMontant(p.id)}>
                         Ajouter
+                      </button>
+                      <button className="btn" style={{ marginLeft: 8 }} onClick={() => commencerEdition(p)}>
+                        Modifier
                       </button>
                     </div>
                   )}

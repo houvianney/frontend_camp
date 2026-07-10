@@ -1,5 +1,5 @@
 import { useEffect, useState, FormEvent } from 'react';
-import { api } from '../../lib/api';
+import { api, getPublicAssetUrl } from '../../lib/api';
 import PageLayout from '../../components/PageLayout';
 
 interface Photo {
@@ -135,9 +135,9 @@ export default function AdminGallery() {
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
                   {album.photos.map((photo) => (
                     <div key={photo.id}>
-                      <img src={photo.url} alt={album.titre} className="responsive" style={{ borderRadius: 18, maxHeight: 140, objectFit: 'cover' }} />
+                      <img src={getPublicAssetUrl(photo.url)} alt={album.titre} className="responsive" style={{ borderRadius: 18, maxHeight: 140, objectFit: 'cover' }} />
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                        <a href={photo.url} target="_blank" rel="noreferrer" className="small-text">Télécharger</a>
+                        <a href={getPublicAssetUrl(photo.url)} download className="small-text">Télécharger</a>
                         <button className="btn btn-danger" onClick={() => supprimerPhoto(album.id, photo.id)} title="Supprimer" style={{ padding: '6px 10px' }}>
                           🗑️
                         </button>
