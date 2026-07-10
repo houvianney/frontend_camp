@@ -288,7 +288,7 @@ export default function ControleurScan() {
             <strong>Nom :</strong> {resultat.participant.nom} <strong>Prénom :</strong> {resultat.participant.prenom}
           </p>
           <p className="small-text">
-            {getTypeParticipantLabel(resultat.participant.typeParticipant)} · {resultat.participant.sexe ?? 'Sexe inconnu'}
+            {getTypeParticipantLabel(resultat.participant.typeParticipant)} <strong> - Sexe :</strong> {resultat.participant.sexe ?? 'Sexe inconnu'}
           </p>
           {resultat.participant.tailleTshirt && <p>Taille T-shirt : {resultat.participant.tailleTshirt}</p>}
           <p className="small-text">Action attendue : {actionLabel.toLowerCase()}.</p>

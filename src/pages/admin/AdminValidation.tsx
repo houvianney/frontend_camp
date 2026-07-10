@@ -109,21 +109,46 @@ export default function AdminValidation() {
 
       const cards = badges
         .filter((item) => item.participant)
-        .map((item) => `
-          <div class="badge-page">
-            <div class="badge-card front">
-              <div class="badge-top">${item.participant?.prenom ?? ''} ${item.participant?.nom ?? ''}</div>
-              <div class="badge-title">Badge participant</div>
-              <div class="badge-meta">Localité : ${item.participant?.localite?.nom ?? '—'}</div>
-              <div class="badge-meta">Type : ${item.participant?.typeParticipant ?? 'Participant'}</div>
-              <div class="badge-meta">Contact : ${item.participant?.contact ?? '—'}</div>
+        .map((item) => {
+          const p = item.participant as Participant;
+          const typeValue = p?.typeParticipant || 'Participant';
+          const nom = p?.nom || '—';
+          const prenom = p?.prenom || '—';
+          const classe = (p as any)?.classe || '—';
+
+          let accent = '#2563eb';
+          const typeLower = (typeValue || '').toLowerCase();
+          const sexe = ((p as any)?.sexe || '').toLowerCase();
+          if (typeLower.includes('enseignant')) accent = '#16a34a';
+          else if (typeLower.includes('staff') || typeLower.includes('staffs')) accent = '#7c3aed';
+          else if (typeLower.includes('volont') || typeLower.includes('volontaire') || typeLower.includes('volunteer')) accent = '#f97316';
+          else {
+            if (sexe === 'masculin' || sexe === 'm') accent = '#2563eb';
+            if (sexe === 'feminin' || sexe === 'féminin' || sexe === 'f') accent = '#ec4899';
+          }
+
+          return `
+            <div style="display:flex;gap:20px;margin-bottom:24px;page-break-after:always;">
+              <div style="width:320px;min-height:420px;border:4px solid ${accent};border-radius:24px;padding:22px;box-sizing:border-box;background:white;display:flex;flex-direction:column;justify-content:flex-start;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                  <img src="/icon_iyf.png" alt="logo" style="width:48px;height:48px;object-fit:contain;" />
+                  <div style="font-weight:700;color:${accent};">16e édition</div>
+                </div>
+                <div style="text-align:center;font-size:1.3rem;font-weight:800;margin-bottom:8px;color:${accent};">Youth Leader Camp</div>
+                <div style="text-align:center;font-weight:700;margin-bottom:12px;color:${accent};">${typeValue}</div>
+                <div style="text-align:left;font-size:1.05rem;font-weight:700;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Nom :</span> <strong>${nom}</strong></div>
+                <div style="text-align:left;font-size:1.05rem;font-weight:700;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>
+                <div style="text-align:left;color:#0f172a;margin-bottom:6px;"><span style="color:#475569;">Classe :</span> <strong>${classe}</strong></div>
+              </div>
+              <div style="width:320px;min-height:420px;border:4px solid ${accent};border-radius:24px;padding:22px;box-sizing:border-box;background:white;display:flex;align-items:center;justify-content:center;">
+                  <div style="text-align:center;">
+                  <div style="font-weight:700;margin-bottom:12px;color:${accent};">Code QR</div>
+                  <img src="${item.qrDataUrl}" alt="QR code" style="width:260px;height:260px;object-fit:contain;" />
+                </div>
+              </div>
             </div>
-            <div class="badge-card back">
-              <div class="badge-title">Code QR</div>
-              <img src="${item.qrDataUrl}" alt="QR code" class="qr-image" />
-            </div>
-          </div>
-        `)
+          `;
+        })
         .join('');
 
       printWindow.document.write(`
@@ -133,12 +158,6 @@ export default function AdminValidation() {
             <style>
               body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 24px; }
               .badge-page { display: flex; gap: 20px; margin-bottom: 24px; page-break-after: always; }
-              .badge-card { width: 320px; min-height: 420px; border: 2px solid #0f172a; border-radius: 24px; padding: 22px; box-sizing: border-box; background: white; }
-              .front { display: flex; flex-direction: column; justify-content: space-between; }
-              .back { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-              .badge-top { font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
-              .badge-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
-              .badge-meta { color: #334155; margin-bottom: 8px; }
               .qr-image { width: 220px; height: 220px; object-fit: contain; }
               @media print { body { background: white; padding: 0; } .badge-page { margin-bottom: 0; } }
             </style>

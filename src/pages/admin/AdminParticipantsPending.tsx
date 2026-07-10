@@ -20,6 +20,7 @@ interface Participant {
   email?: string | null;
   membreOng?: boolean | null;
   typeParticipant?: string | null;
+  typeStaff?: string | null;
   montantTotal?: number | string | null;
   montantPaye?: number | string | null;
   statut?: 'EN_ATTENTE' | 'VALIDE';
@@ -28,7 +29,7 @@ interface Participant {
   createdAt?: string;
 }
 
-type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt' | 'statut';
+type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'typeStaff' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt' | 'statut';
 interface SortState {
   field: SortField;
   direction: 'asc' | 'desc';
@@ -43,6 +44,7 @@ const sortLabels: Record<SortField, string> = {
   age: 'Âge',
   profession: 'Profession',
   typeParticipant: 'Type',
+  typeStaff: 'Type staff',
   montantPaye: 'Montant versé',
   montantTotal: 'Montant total',
   inscritPar: 'Agent inscrit',
@@ -125,8 +127,8 @@ export default function AdminParticipantsPending() {
     }
 
     items.sort((a, b) => {
-      let left: string | number | boolean | undefined;
-      let right: string | number | boolean | undefined;
+      let left: string | number = '';
+      let right: string | number = '';
 
       switch (sortState.field) {
         case 'nom':
@@ -160,6 +162,10 @@ export default function AdminParticipantsPending() {
         case 'typeParticipant':
           left = a.typeParticipant?.toLowerCase() || '';
           right = b.typeParticipant?.toLowerCase() || '';
+          break;
+        case 'typeStaff':
+          left = a.typeStaff?.toLowerCase() || '';
+          right = b.typeStaff?.toLowerCase() || '';
           break;
         case 'montantPaye':
           left = Number(a.montantPaye || 0);
@@ -234,6 +240,7 @@ export default function AdminParticipantsPending() {
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('age')}>Âge {sortState.field === 'age' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('profession')}>Profession {sortState.field === 'profession' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('typeParticipant')}>Type {sortState.field === 'typeParticipant' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
+                  <th><button type="button" className="sortable-header" onClick={() => handleSort('typeStaff')}>Type staff {sortState.field === 'typeStaff' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('montantPaye')}>Montant versé {sortState.field === 'montantPaye' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('inscritPar')}>Agent inscrit {sortState.field === 'inscritPar' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('createdAt')}>Date {sortState.field === 'createdAt' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
@@ -253,6 +260,7 @@ export default function AdminParticipantsPending() {
                     <td>{p.age ? `${p.age} ans` : '—'}</td>
                     <td>{formatValue(p.profession)}</td>
                     <td>{formatValue(p.typeParticipant)}</td>
+                    <td>{formatValue(p.typeStaff)}</td>
                     <td>{Number(p.montantPaye || 0)} FCFA</td>
                     <td>{p.inscritPar ? `${p.inscritPar.prenom || ''} ${p.inscritPar.nom || ''}`.trim() : '—'}</td>
                     <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : '—'}</td>

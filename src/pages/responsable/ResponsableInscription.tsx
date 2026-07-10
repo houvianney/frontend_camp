@@ -13,6 +13,7 @@ interface Participant {
   contact?: string | null;
   membreOng?: boolean | null;
   typeParticipant?: string | null;
+  typeStaff?: string | null;
   montantTotal: number | string;
   montantPaye: number | string;
   statut: 'EN_ATTENTE' | 'VALIDE';
@@ -29,11 +30,14 @@ export default function ResponsableInscription() {
   const [contact, setContact] = useState('');
   const [membreOng, setMembreOng] = useState(false);
   const [typeParticipant, setTypeParticipant] = useState('PARTICIPANT');
+  const [typeStaff, setTypeStaff] = useState('');
   const [montantInitial, setMontantInitial] = useState('');
   const [message, setMessage] = useState<string>('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [ajouts, setAjouts] = useState<Record<string, string>>({});
+
+  const staffTypes = ['Media', 'Cuisine', 'Accueil', 'Sécurité', 'Prestations', 'Inscription', 'Organisateurs'];
 
   async function charger() {
     try {
@@ -58,6 +62,7 @@ export default function ResponsableInscription() {
     if (!age.trim()) newErrors.age = 'L\'âge est obligatoire.';
     if (age && isNaN(Number(age))) newErrors.age = 'L\'âge doit être un nombre.';
     if (!sexe) newErrors.sexe = 'Le sexe est obligatoire.';
+    if (typeParticipant === 'STAFF' && !typeStaff) newErrors.typeStaff = 'Le type de staff est obligatoire pour le staff.';
     if (!contact.trim()) newErrors.contact = 'Le contact est obligatoire.';
     if (!montantInitial.trim()) newErrors.montantInitial = 'Le montant de la première tranche est obligatoire.';
     if (montantInitial && isNaN(Number(montantInitial))) newErrors.montantInitial = 'Le montant doit être un nombre.';
@@ -89,6 +94,7 @@ export default function ResponsableInscription() {
         contact: contact.trim(),
         membreOng,
         typeParticipant,
+        typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
         montantTotal: 0,
         montantPaye: Number(montantInitial) || 0,
       });
@@ -101,6 +107,7 @@ export default function ResponsableInscription() {
       setContact('');
       setMembreOng(false);
       setTypeParticipant('PARTICIPANT');
+      setTypeStaff('');
       setMontantInitial('');
       setErrors({});
       setMessage('Participant ajouté avec succès.');
@@ -267,14 +274,43 @@ export default function ResponsableInscription() {
               <select 
                 className="input"
                 value={typeParticipant} 
-                onChange={(e) => setTypeParticipant(e.target.value)}
+                onChange={(e) => {
+                  setTypeParticipant(e.target.value);
+                  if (e.target.value !== 'STAFF') {
+                    setTypeStaff('');
+                    if (errors.typeStaff) setErrors((prev) => ({ ...prev, typeStaff: '' }));
+                  }
+                }}
               >
                 <option value="PARTICIPANT">Participant</option>
                 <option value="STAFF">Staff</option>
                 <option value="ENSEIGNANT">Enseignant</option>
+                <option value="VOLONTAIRE">Volontaire</option>
               </select>
             </label>
           </div>
+
+          {typeParticipant === 'STAFF' && (
+            <div className="form-row inline">
+              <label>
+                Type de staff *
+                <select
+                  className={`input ${errors.typeStaff ? 'input-error' : ''}`}
+                  value={typeStaff}
+                  onChange={(e) => {
+                    setTypeStaff(e.target.value);
+                    if (errors.typeStaff) setErrors((prev) => ({ ...prev, typeStaff: '' }));
+                  }}
+                >
+                  <option value="">Sélectionner le type de staff</option>
+                  {staffTypes.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+                {errors.typeStaff && <div className="error-text">{errors.typeStaff}</div>}
+              </label>
+            </div>
+          )}
 
           <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input 
@@ -334,6 +370,7 @@ export default function ResponsableInscription() {
                   <strong>{p.prenom} {p.nom}</strong>
                   <div className="small-text">
                     {p.typeParticipant ? `${p.typeParticipant}` : ''}
+                    {p.typeStaff ? ` • ${p.typeStaff}` : ''}
                     {p.age ? ` • ${p.age} ans` : ''}
                     {p.sexe ? ` • ${p.sexe}` : ''}
                     {p.profession ? ` • ${p.profession}` : ''}

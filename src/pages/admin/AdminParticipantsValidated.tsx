@@ -21,6 +21,7 @@ interface Participant {
   email?: string | null;
   membreOng?: boolean | null;
   typeParticipant?: string | null;
+  typeStaff?: string | null;
   montantTotal?: number | string | null;
   montantPaye?: number | string | null;
   statut?: 'EN_ATTENTE' | 'VALIDE';
@@ -29,7 +30,7 @@ interface Participant {
   createdAt?: string;
 }
 
-type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt';
+type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'typeStaff' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt';
 
 interface SortState {
   field: SortField;
@@ -43,6 +44,7 @@ export default function AdminParticipantsValidated() {
   const [selectedLocaliteId, setSelectedLocaliteId] = useState('');
   const [selectedSexe, setSelectedSexe] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [selectedMontant, setSelectedMontant] = useState('');
   const [loading, setLoading] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
 
@@ -64,6 +66,10 @@ export default function AdminParticipantsValidated() {
 
   function togglePrint(id: string) {
     setSelectedPrint((prev) => prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]);
+  }
+
+  function updateClasse(id: string, value: string) {
+    setValides((prev) => prev.map((p) => p.id === id ? { ...p, classe: value } : p));
   }
 
   function handleSort(field: SortField) {
@@ -102,21 +108,39 @@ export default function AdminParticipantsValidated() {
       const cards = badges
         .filter((item) => item.participant)
         .map((item) => {
-          const typeValue = item.participant?.typeParticipant || 'Participant';
-          const nom = item.participant?.nom || '—';
-          const prenom = item.participant?.prenom || '—';
-          const classe = item.participant?.classe || item.participant?.profession || '—';
+          const p = item.participant as Participant;
+          const typeValue = p?.typeParticipant || 'Participant';
+          const nom = p?.nom || '—';
+          const prenom = p?.prenom || '—';
+          const classe = p?.classe || '—';
+
+          // determine accent color
+          let accent = '#2563eb'; // default blue
+          const typeLower = (typeValue || '').toLowerCase();
+          const sexe = (p?.sexe || '').toLowerCase();
+          if (typeLower.includes('enseignant')) accent = '#16a34a';
+          else if (typeLower.includes('staff') || typeLower.includes('staffs')) accent = '#7c3aed';
+          else if (typeLower.includes('volont') || typeLower.includes('volunteer') || typeLower.includes('volontaire')) accent = '#f97316';
+          else {
+            if (sexe === 'masculin' || sexe === 'm') accent = '#2563eb';
+            if (sexe === 'feminin' || sexe === 'féminin' || sexe === 'f') accent = '#ec4899';
+          }
 
           return `
-            <div class="badge-card">
-              <div class="badge-header">IYF Youth Leader Camp 2026</div>
-              <div class="badge-type">${typeValue}</div>
-              <div class="badge-field"><span>Nom :</span> <strong>${nom}</strong></div>
-              <div class="badge-field"><span>Prénom :</span> <strong>${prenom}</strong></div>
-              <div class="badge-field"><span>Classe :</span> <strong>${classe}</strong></div>
-              <div class="badge-qr-wrap">
-                <div class="badge-title">Code QR</div>
-                <img src="${item.qrDataUrl}" alt="QR code" class="qr-image" />
+            <div class="badge-card" style="border: 4px solid ${accent}; background: white; border-radius: 20px; padding: 18px; box-sizing: border-box;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img src="/icon_iyf.png" alt="logo" style="width:42px;height:42px;object-fit:contain;" />
+                </div>
+                <div style="font-weight:700;color:${accent};">16e édition</div>
+              </div>
+              <div style="text-align:center;font-weight:800;font-size:1.05rem;margin-bottom:6px;color:${accent};">Youth Leader Camp</div>
+              <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
+              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Nom :</span> <strong>${nom}</strong></div>
+              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>
+              <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;"><span style="color:#475569;">Classe :</span> <strong>${classe}</strong></div>
+              <div style="display:flex;justify-content:center;margin-top:6px;">
+                <img src="${item.qrDataUrl}" alt="QR code" style="width:180px;height:180px;object-fit:contain;" />
               </div>
             </div>
           `;
@@ -130,13 +154,7 @@ export default function AdminParticipantsValidated() {
             <style>
               body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 24px; }
               .badge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-              .badge-card { width: 100%; min-height: 320px; border: 2px solid #0f172a; border-radius: 20px; padding: 18px; box-sizing: border-box; background: white; page-break-inside: avoid; }
-              .badge-header { text-align: center; font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 10px; }
-              .badge-title { font-size: 1rem; font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 8px; }
-              .badge-type { text-align: center; font-size: 1rem; font-weight: 700; color: #334155; margin-bottom: 10px; }
-              .badge-field { font-size: 0.95rem; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px; }
-              .badge-field span { color: #475569; }
-              .badge-qr-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+              .badge-card { width: 100%; min-height: 320px; page-break-inside: avoid; }
               .qr-image { width: 140px; height: 140px; object-fit: contain; display: block; }
               @media print { body { background: white; padding: 0; } .badge-grid { gap: 12px; } }
             </style>
@@ -173,6 +191,10 @@ export default function AdminParticipantsValidated() {
     return Array.from(new Set(valides.map((participant) => participant.typeParticipant).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b));
   }, [valides]);
 
+  const montantOptions = useMemo(() => {
+    return Array.from(new Set(valides.map((participant) => Number(participant.montantPaye || 0)).filter((value) => value > 0))).sort((a, b) => a - b);
+  }, [valides]);
+
   const sortedParticipants = useMemo(() => {
     let items = [...valides];
 
@@ -191,6 +213,10 @@ export default function AdminParticipantsValidated() {
 
     if (selectedType) {
       items = items.filter((participant) => participant.typeParticipant === selectedType);
+    }
+
+    if (selectedMontant) {
+      items = items.filter((participant) => Number(participant.montantPaye || 0) === Number(selectedMontant));
     }
 
     items.sort((a, b) => {
@@ -230,6 +256,10 @@ export default function AdminParticipantsValidated() {
           left = a.typeParticipant?.toLowerCase() || '';
           right = b.typeParticipant?.toLowerCase() || '';
           break;
+        case 'typeStaff':
+          left = a.typeStaff?.toLowerCase() || '';
+          right = b.typeStaff?.toLowerCase() || '';
+          break;
         case 'montantPaye':
           left = Number(a.montantPaye || 0);
           right = Number(b.montantPaye || 0);
@@ -257,7 +287,7 @@ export default function AdminParticipantsValidated() {
     });
 
     return items;
-  }, [valides, localites, selectedLocaliteId, selectedSexe, selectedType, sortState]);
+  }, [valides, localites, selectedLocaliteId, selectedSexe, selectedType, selectedMontant, sortState]);
 
   return (
     <PageLayout title="Participants du camp">
@@ -282,6 +312,15 @@ export default function AdminParticipantsValidated() {
               <option value="">Tous</option>
               {typeOptions.map((type) => (
                 <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field" style={{ minWidth: 160, margin: 0 }}>
+            <span className="field-label">Montant exact</span>
+            <select className="select" value={selectedMontant} onChange={(e) => setSelectedMontant(e.target.value)}>
+              <option value="">Tous</option>
+              {montantOptions.map((montant) => (
+                <option key={montant} value={montant}>{montant} FCFA</option>
               ))}
             </select>
           </label>
@@ -311,12 +350,14 @@ export default function AdminParticipantsValidated() {
                   <th><input type="checkbox" checked={selectedPrint.length === valides.length && valides.length > 0} onChange={() => setSelectedPrint(valides.length ? valides.map((p) => p.id) : [])} /></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('nom')}>Nom {sortState.field === 'nom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('prenom')}>Prénom {sortState.field === 'prenom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
+                  <th>Classe</th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('localite')}>Localité {sortState.field === 'localite' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('contact')}>Contact {sortState.field === 'contact' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('sexe')}>Sexe {sortState.field === 'sexe' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('age')}>Âge {sortState.field === 'age' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('profession')}>Profession {sortState.field === 'profession' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('typeParticipant')}>Type {sortState.field === 'typeParticipant' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
+                  <th><button type="button" className="sortable-header" onClick={() => handleSort('typeStaff')}>Type staff {sortState.field === 'typeStaff' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('montantPaye')}>Montant versé {sortState.field === 'montantPaye' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('inscritPar')}>Agent inscrit {sortState.field === 'inscritPar' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('createdAt')}>Date {sortState.field === 'createdAt' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
@@ -329,12 +370,16 @@ export default function AdminParticipantsValidated() {
                     <td><input type="checkbox" checked={selectedPrint.includes(p.id)} onChange={() => togglePrint(p.id)} /></td>
                     <td><strong>{formatValue(p.nom)}</strong></td>
                     <td>{formatValue(p.prenom)}</td>
+                    <td>
+                      <input type="text" value={p.classe || ''} onChange={(e) => updateClasse(p.id, e.target.value)} style={{ width: 120 }} />
+                    </td>
                     <td>{formatValue(p.localite?.nom)}</td>
                     <td>{formatValue(p.contact)}</td>
                     <td>{formatValue(p.sexe)}</td>
                     <td>{p.age ? `${p.age} ans` : '—'}</td>
                     <td>{formatValue(p.profession)}</td>
                     <td>{formatValue(p.typeParticipant)}</td>
+                    <td>{formatValue(p.typeStaff)}</td>
                     <td>{Number(p.montantPaye || 0)} FCFA</td>
                     <td>{p.inscritPar ? `${p.inscritPar.prenom || ''} ${p.inscritPar.nom || ''}`.trim() : '—'}</td>
                     <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
