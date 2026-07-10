@@ -54,43 +54,101 @@ export default function ControleurScan() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerStartedRef = useRef(false);
+  const scanStartedAtRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+
+  async function ensureCameraPermission() {
+    console.log('[SCAN] Checking camera availability');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      console.error('[SCAN] getUserMedia is not available in this browser');
+      return false;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      stream.getTracks().forEach((track) => track.stop());
+      console.log('[SCAN] Camera permission granted');
+      return true;
+    } catch (err) {
+      console.error('[SCAN] Camera permission denied or unavailable', err);
+      return false;
+    }
+  }
 
   useEffect(() => {
+    console.log('[SCAN] Page mounted', {
+      userRole: user?.role,
+      controleType: user?.controleType,
+      viteApiUrl: import.meta.env.VITE_API_URL,
+      apiBaseUrl: api.defaults.baseURL,
+    });
+
     if (!scanning) return;
 
     const scanner = new Html5Qrcode(SCANNER_ELEMENT_ID);
     scannerRef.current = scanner;
+    scanStartedAtRef.current = Date.now();
+    console.log('[SCAN] Starting scanner session', { startedAt: scanStartedAtRef.current });
 
-    scanner
-      .start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: 250 },
-        async (decodedText) => {
-          try {
-            console.log('QR decoded:', decodedText);
-            await scanner.stop().catch(() => {});
-            setScanning(false);
-            await lookup(decodedText);
-          } catch (e) {
-            console.error('Error handling decoded QR:', e);
-            setMessage({ type: 'error', text: 'Erreur interne lors du traitement du QR' });
-            setScanning(false);
-          }
-        },
-        () => {
-          // erreur de frame ignorée: le scan continue
-        },
-      )
-      .then(() => {
-        scannerStartedRef.current = true;
-      })
-      .catch((err) => {
-        console.error('Html5Qrcode start error:', err);
-        setMessage({ type: 'error', text: "Impossible d'accéder à la caméra. Vérifiez les permissions et réessayez." });
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => {
+      console.warn('[SCAN] Scan timeout reached', { elapsedMs: Date.now() - (scanStartedAtRef.current ?? Date.now()) });
+      setMessage({ type: 'error', text: 'Temps de scan dépassé. Réessayez.' });
+      setScanning(false);
+    }, 30000);
+
+    const startScanner = async () => {
+      const permissionOk = await ensureCameraPermission();
+      if (!permissionOk) {
+        console.error('[SCAN] Camera permission rejected, stopping scanner');
+        setMessage({ type: 'error', text: 'Autorisation caméra refusée. Vérifiez les permissions du navigateur.' });
         setScanning(false);
-      });
+        return;
+      }
+
+      scanner
+        .start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: 250 },
+          async (decodedText) => {
+            try {
+              const elapsedMs = Date.now() - (scanStartedAtRef.current ?? Date.now());
+              console.log('[SCAN] QR decoded', { decodedText, elapsedMs });
+              if (scannerStartedRef.current) {
+                await scanner.stop().catch(() => {});
+                scannerStartedRef.current = false;
+              }
+              setScanning(false);
+              await lookup(decodedText);
+            } catch (e) {
+              console.error('[SCAN] Error while handling decoded QR', e);
+              setMessage({ type: 'error', text: 'Erreur interne lors du traitement du QR' });
+              if (scannerStartedRef.current) {
+                await scanner.stop().catch(() => {});
+                scannerStartedRef.current = false;
+              }
+              setScanning(false);
+            }
+          },
+          () => {
+            // erreur de frame ignorée: le scan continue
+          },
+        )
+        .then(() => {
+          scannerStartedRef.current = true;
+          console.log('[SCAN] Scanner started successfully');
+        })
+        .catch((err) => {
+          console.error('[SCAN] Html5Qrcode start error', err);
+          setMessage({ type: 'error', text: "Impossible d'accéder à la caméra. Vérifiez les permissions et réessayez." });
+          setScanning(false);
+        });
+    };
+
+    void startScanner();
 
     return () => {
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
       if (scannerRef.current && scannerStartedRef.current) {
         scannerRef.current.stop().catch(() => {
           /* ignore */
@@ -98,10 +156,12 @@ export default function ControleurScan() {
       }
       scannerRef.current = null;
       scannerStartedRef.current = false;
+      scanStartedAtRef.current = null;
     };
-  }, [scanning]);
+  }, [scanning, user?.role, user?.controleType]);
 
   async function lookup(qrCodeRaw: string) {
+    console.log('[SCAN] Lookup started', { qrCodeRaw });
     setMessage(null);
     let qrCode = qrCodeRaw;
 
@@ -123,21 +183,28 @@ export default function ControleurScan() {
     }
 
     try {
+      console.log('[SCAN] Sending scan request', { qrCode, endpoint: '/distributions/scan' });
       const { data } = await api.post<LookupResult>('/distributions/scan', { qrCode });
+      console.log('[SCAN] Lookup success', data);
       setResultat(data);
     } catch (err: any) {
-      setMessage({ type: 'error', text: err?.response?.data?.message || 'QR code invalide' });
+      console.error('[SCAN] Lookup error', err);
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message || err?.message || 'QR code invalide';
+      setMessage({ type: 'error', text: status ? `${status} - ${message}` : message });
       setResultat(null);
     }
   }
 
   async function valider(ressourceId: string) {
     if (!resultat) return;
+    console.log('[SCAN] Validation attempt', { participantId: resultat.participant.id, ressourceId });
     try {
-      await api.post('/distributions/valider', {
+      const response = await api.post('/distributions/valider', {
         participantId: resultat.participant.id,
         ressourceId,
       });
+      console.log('[SCAN] Validation success', response.data);
       const actionLabel = getActionLabel(resultat.typeControle);
       setMessage({ type: 'success', text: `${actionLabel} validée ✅` });
       setResultat({
@@ -147,11 +214,13 @@ export default function ControleurScan() {
         ),
       });
     } catch (err: any) {
+      console.error('[SCAN] Validation failed', err);
       setMessage({ type: 'error', text: err?.response?.data?.message || 'Déjà validé' });
     }
   }
 
   function nouveauScan() {
+    console.log('[SCAN] Restarting new scan');
     setResultat(null);
     setMessage(null);
     setScanning(true);

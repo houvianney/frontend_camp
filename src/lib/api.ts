@@ -10,8 +10,20 @@ export const api = axios.create({
 // Injecte le token JWT stocké après login sur chaque requête
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  console.log('[API] ->', config.method?.toUpperCase(), config.url, config.data ?? '');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    console.log('[API] <-', response.status, response.config.url, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('[API] <- ERROR', error?.config?.url, error?.response?.status, error?.response?.data);
+    return Promise.reject(error);
+  },
+);
