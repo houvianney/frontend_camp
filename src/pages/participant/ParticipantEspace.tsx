@@ -35,6 +35,8 @@ interface Album {
 interface BadgeInfo {
   nom: string;
   prenom: string;
+  sexe: string | null;
+  typeParticipant: string | null;
   statut: string;
   tailleTshirt: string | null;
   ressourcesRecues: RessourceRecue[];
@@ -79,14 +81,20 @@ export default function ParticipantEspace() {
   }
 
   return (
-    <PageLayout title={`${info.prenom} ${info.nom}`}>
+    <PageLayout title={`Bienvenue, ${info.prenom} ${info.nom}`}>
       <section className="card">
+        <p style={{ marginBottom: 8 }}>
+          <strong>{info.prenom} {info.nom}</strong>
+        </p>
+        <p style={{ marginBottom: 8 }} className="small-text">
+          {info.typeParticipant ?? 'Participant'} • {info.sexe ?? 'Sexe non renseigné'}
+        </p>
         <p>
           Statut : <strong>{info.statut === 'VALIDE' ? '✅ Inscription validée' : '⏳ En attente de validation'}</strong>
         </p>
         {info.tailleTshirt && <p>Taille T-shirt : {info.tailleTshirt}</p>}
         <p className="small-text">
-          Présentez ce QR code ou ce lien à l’entrée, au point repas ou à la distribution de t-shirts.
+          Vous pouvez faire défiler les photos de l’événement ci-dessous.
         </p>
       </section>
 
@@ -125,6 +133,9 @@ export default function ParticipantEspace() {
 
       <section className="card">
         <h2 className="section-title">Galerie photos</h2>
+        <p className="small-text" style={{ marginBottom: 14 }}>
+          Toutes les photos de l’événement sont affichées ici, sans recherche ni filtre : faites simplement défiler pour trouver celles qui vous concernent.
+        </p>
         {albums.length === 0 ? (
           <p>Aucune galerie n’est encore disponible.</p>
         ) : (

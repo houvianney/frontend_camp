@@ -13,8 +13,17 @@ interface RessourceInfo {
   dejaDistribue: boolean;
 }
 
+interface ParticipantInfo {
+  id: string;
+  nom: string;
+  prenom: string;
+  sexe: string | null;
+  typeParticipant: string | null;
+  tailleTshirt: string | null;
+}
+
 interface LookupResult {
-  participant: { id: string; nom: string; prenom: string; tailleTshirt: string | null };
+  participant: ParticipantInfo;
   typeControle: string;
   ressources: RessourceInfo[];
 }
@@ -44,6 +53,19 @@ function getActionLabel(type?: string | null) {
       return 'Valider le repas';
     default:
       return 'Valider la ressource';
+  }
+}
+
+function getTypeParticipantLabel(type?: string | null) {
+  switch (type) {
+    case 'PARTICIPANT':
+      return 'Participant';
+    case 'STAFF':
+      return 'Staff';
+    case 'ENSEIGNANT':
+      return 'Enseignant';
+    default:
+      return 'Type inconnu';
   }
 }
 
@@ -263,7 +285,10 @@ export default function ControleurScan() {
         <section className="card">
           <h2 className="section-title">Participant scanné</h2>
           <p>
-            <strong>{resultat.participant.prenom} {resultat.participant.nom}</strong>
+            <strong>Nom :</strong> {resultat.participant.nom} <strong>Prénom :</strong> {resultat.participant.prenom}
+          </p>
+          <p className="small-text">
+            {getTypeParticipantLabel(resultat.participant.typeParticipant)} · {resultat.participant.sexe ?? 'Sexe inconnu'}
           </p>
           {resultat.participant.tailleTshirt && <p>Taille T-shirt : {resultat.participant.tailleTshirt}</p>}
           <p className="small-text">Action attendue : {actionLabel.toLowerCase()}.</p>
@@ -282,7 +307,6 @@ export default function ControleurScan() {
                 >
                   <div style={{ textAlign: 'left', width: '100%' }}>
                     <div>{r.libelle}</div>
-                    <div className="small-text">{r.creneau ?? 'Sans créneau'}</div>
                     {r.dejaDistribue ? (
                       <div className="small-text">Déjà validé pour ce type de contrôle</div>
                     ) : (
