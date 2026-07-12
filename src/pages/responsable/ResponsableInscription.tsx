@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useMemo, useState, FormEvent } from 'react';
 import { api } from '../../lib/api';
 import PageLayout from '../../components/PageLayout';
 
@@ -36,6 +36,7 @@ export default function ResponsableInscription() {
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [ajouts, setAjouts] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const staffTypes = ['Media', 'Cuisine', 'Accueil', 'Sécurité', 'Prestations', 'Inscription', 'Organisateurs'];
@@ -67,7 +68,7 @@ export default function ResponsableInscription() {
     if (!contact.trim()) newErrors.contact = 'Le contact est obligatoire.';
     if (!montantInitial.trim()) newErrors.montantInitial = 'Le montant de la première tranche est obligatoire.';
     if (montantInitial && isNaN(Number(montantInitial))) newErrors.montantInitial = 'Le montant doit être un nombre.';
-    if (montantInitial && Number(montantInitial) < 0) newErrors.montantInitial = 'Le montant ne peut pas être négatif.';
+    if (montantInitial && (Number(montantInitial) < 1 || Number(montantInitial) > 20000)) newErrors.montantInitial = 'Le montant doit être entre 1 et 20 000.';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -198,6 +199,16 @@ export default function ResponsableInscription() {
 
   const totalParticipants = participants.length;
   const totalVerse = participants.reduce((sum, p) => sum + Number(p.montantPaye || 0), 0);
+
+  const filteredParticipants = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return participants;
+
+    return participants.filter((p) => {
+      const combined = `${p.nom || ''} ${p.prenom || ''} ${p.contact || ''} ${p.typeParticipant || ''} ${p.typeStaff || ''}`.toLowerCase();
+      return combined.includes(term);
+    });
+  }, [participants, search]);
 
   return (
     <PageLayout title="Inscription — ma localité">
@@ -364,12 +375,14 @@ export default function ResponsableInscription() {
             <input
               className={`input ${errors.montantInitial ? 'input-error' : ''}`}
               type="number"
-              min="0"
+              min="1"
+              max="20000"
               value={montantInitial}
               onChange={(e) => {
                 setMontantInitial(e.target.value);
                 if (errors.montantInitial) setErrors(prev => ({ ...prev, montantInitial: '' }));
               }}
+              placeholder="1 à 20 000"
             />
             {errors.montantInitial && <div className="error-text">{errors.montantInitial}</div>}
           </label>
@@ -381,7 +394,7 @@ export default function ResponsableInscription() {
       </section>
 
       <section className="card">
-        <div className="form-row inline" style={{ marginBottom: 16 }}>
+        <div className="form-row inline" style={{ marginBottom: 16, alignItems: 'flex-end' }}>
           <div className="card" style={{ flex: 1 }}>
             <h3 className="section-title">Participants inscrits</h3>
             <div className="section-title" style={{ margin: 0 }}>{totalParticipants}</div>
@@ -390,9 +403,18 @@ export default function ResponsableInscription() {
             <h3 className="section-title">Somme versée</h3>
             <div className="section-title" style={{ margin: 0 }}>{totalVerse} FCFA</div>
           </div>
+          <label style={{ flex: 1, minWidth: 220 }}>
+            Recherche rapide
+            <input
+              className="input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Nom, prénom, contact..."
+            />
+          </label>
         </div>
 
-        <h2 className="section-title">Mes participants ({participants.length})</h2>
+        <h2 className="section-title">Mes participants ({filteredParticipants.length})</h2>
         <table className="table">
           <thead>
             <tr>
@@ -402,7 +424,7 @@ export default function ResponsableInscription() {
             </tr>
           </thead>
           <tbody>
-            {participants.map((p) => (
+            {filteredParticipants.map((p) => (
               <tr key={p.id}>
                 <td>
                   <strong>{p.prenom} {p.nom}</strong>

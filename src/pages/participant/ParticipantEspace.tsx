@@ -47,6 +47,7 @@ export default function ParticipantEspace() {
   const [info, setInfo] = useState<BadgeInfo | null>(null);
   const [programme, setProgramme] = useState<ProgrammeItem[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [erreur, setErreur] = useState('');
 
   useEffect(() => {
@@ -143,9 +144,21 @@ export default function ParticipantEspace() {
             <div key={album.id} className="card" style={{ marginBottom: 18 }}>
               <h3>{album.titre}</h3>
               <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
                 {album.photos.map((photo) => (
-                  <img key={photo.id} src={getPublicAssetUrl(photo.url)} alt={album.titre} className="responsive" style={{ borderRadius: 18, maxHeight: 180, objectFit: 'cover' }} />
+                  <button
+                    key={photo.id}
+                    type="button"
+                    onClick={() => setSelectedPhoto(getPublicAssetUrl(photo.url))}
+                    style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
+                  >
+                    <img
+                      src={getPublicAssetUrl(photo.url)}
+                      alt={album.titre}
+                      className="responsive"
+                      style={{ borderRadius: 18, width: '100%', height: 120, objectFit: 'cover' }}
+                    />
+                  </button>
                 ))}
               </div>
             </div>

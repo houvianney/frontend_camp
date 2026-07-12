@@ -57,6 +57,7 @@ export default function AdminParticipantsPending() {
   const [localites, setLocalites] = useState<Localite[]>([]);
   const [selectedPending, setSelectedPending] = useState<string[]>([]);
   const [selectedLocaliteId, setSelectedLocaliteId] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
 
@@ -116,6 +117,14 @@ export default function AdminParticipantsPending() {
 
   const sortedParticipants = useMemo(() => {
     let items = [...attente];
+
+    const term = search.trim().toLowerCase();
+    if (term) {
+      items = items.filter((participant) => {
+        const combined = `${participant.nom || ''} ${participant.prenom || ''} ${participant.contact || ''} ${participant.localite?.nom || ''}`.toLowerCase();
+        return combined.includes(term);
+      });
+    }
 
     if (selectedLocaliteId) {
       const selectedLocalite = localites.find((localite) => localite.id === selectedLocaliteId);
@@ -198,7 +207,7 @@ export default function AdminParticipantsPending() {
     });
 
     return items;
-  }, [attente, localites, selectedLocaliteId, sortState]);
+  }, [attente, localites, selectedLocaliteId, search, sortState]);
 
   return (
     <PageLayout title="Inscriptions en attente">
@@ -208,6 +217,10 @@ export default function AdminParticipantsPending() {
             <h2 className="section-title">Liste des inscriptions en attente</h2>
             <p className="small-text">Tableau administrateur, triable par colonne, avec filtre par localité. Le tri par défaut est alphabétique sur le nom.</p>
           </div>
+          <label className="field" style={{ minWidth: 220, margin: 0 }}>
+            <span className="field-label">Recherche</span>
+            <input className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, prénom, contact..." />
+          </label>
           <label className="field" style={{ minWidth: 220, margin: 0 }}>
             <span className="field-label">Localité</span>
             <select className="select" value={selectedLocaliteId} onChange={(e) => setSelectedLocaliteId(e.target.value)}>

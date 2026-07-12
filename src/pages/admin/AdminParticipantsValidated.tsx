@@ -45,6 +45,7 @@ export default function AdminParticipantsValidated() {
   const [selectedSexe, setSelectedSexe] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedMontant, setSelectedMontant] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
 
@@ -132,8 +133,9 @@ export default function AdminParticipantsValidated() {
   async function submitForm(e?: any) {
     if (e && e.preventDefault) e.preventDefault();
 
-    if (!formNom.trim() || !formPrenom.trim() || !formSexe || !formContact.trim() || !formType || Number(formMontant) <= 0 || !formLocaliteId) {
-      alert('Veuillez renseigner tous les champs obligatoires : Nom, Prénom, Sexe, Contact, Montant, Type et Localité.');
+    const montantValue = Number(formMontant);
+    if (!formNom.trim() || !formPrenom.trim() || !formSexe || !formContact.trim() || !formType || montantValue < 1 || montantValue > 20000 || !formLocaliteId) {
+      alert('Veuillez renseigner tous les champs obligatoires : Nom, Prénom, Sexe, Contact, Montant (1–20 000), Type et Localité.');
       return;
     }
 
@@ -263,6 +265,16 @@ export default function AdminParticipantsValidated() {
     return Array.from(new Set(valides.map((participant) => participant.sexe).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b));
   }, [valides]);
 
+  const filteredParticipants = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return valides;
+
+    return valides.filter((participant) => {
+      const combined = `${participant.nom || ''} ${participant.prenom || ''} ${participant.contact || ''} ${participant.localite?.nom || ''}`.toLowerCase();
+      return combined.includes(term);
+    });
+  }, [valides, search]);
+
   const typeOptions = useMemo(() => {
     return Array.from(new Set(valides.map((participant) => participant.typeParticipant).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b));
   }, [valides]);
@@ -272,7 +284,7 @@ export default function AdminParticipantsValidated() {
   }, [valides]);
 
   const sortedParticipants = useMemo(() => {
-    let items = [...valides];
+    let items = [...filteredParticipants];
 
     if (selectedLocaliteId) {
       const selectedLocalite = localites.find((localite) => localite.id === selectedLocaliteId);
@@ -363,7 +375,7 @@ export default function AdminParticipantsValidated() {
     });
 
     return items;
-  }, [valides, localites, selectedLocaliteId, selectedSexe, selectedType, selectedMontant, sortState]);
+  }, [valides, localites, selectedLocaliteId, selectedSexe, selectedType, selectedMontant, search, sortState]);
 
   return (
     <PageLayout title="Participants du camp">
@@ -373,6 +385,10 @@ export default function AdminParticipantsValidated() {
             <h2 className="section-title">Liste des participants validés</h2>
             <p className="small-text">Tableau administrateur, triable par colonne, avec filtres par sexe, type et localité. Le tri par défaut est alphabétique sur le nom.</p>
           </div>
+          <label className="field" style={{ minWidth: 160, margin: 0 }}>
+            <span className="field-label">Recherche</span>
+            <input className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, prénom, contact..." />
+          </label>
           <label className="field" style={{ minWidth: 160, margin: 0 }}>
             <span className="field-label">Sexe</span>
             <select className="select" value={selectedSexe} onChange={(e) => setSelectedSexe(e.target.value)}>
@@ -440,7 +456,7 @@ export default function AdminParticipantsValidated() {
               </div>
               <div className="form-row inline">
                 <label>Contact * <input className="input" value={formContact} onChange={(e) => setFormContact(e.target.value)} /></label>
-                <label>Montant payé * <input className="input" type="number" value={formMontant} onChange={(e) => setFormMontant(e.target.value)} /></label>
+                <label>Montant payé * <input className="input" type="number" min="1" max="20000" value={formMontant} onChange={(e) => setFormMontant(e.target.value)} /></label>
                 <label>Localité * <select className="input" value={formLocaliteId} onChange={(e) => setFormLocaliteId(e.target.value)}>
                   <option value="">Sélectionner</option>
                   {localites.map((l) => (<option key={l.id} value={l.id}>{l.nom}</option>))}
