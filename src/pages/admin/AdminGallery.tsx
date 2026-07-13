@@ -77,6 +77,17 @@ export default function AdminGallery() {
     }
   }
 
+  async function supprimerAlbum(albumId: string) {
+    if (!window.confirm('Supprimer cet album et toutes ses photos ?')) return;
+    try {
+      await api.delete(`/albums/${albumId}`);
+      setMessage('Album supprimé.');
+      await charger();
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message || 'Impossible de supprimer l’album.');
+    }
+  }
+
   return (
     <PageLayout title="Galerie photos">
       <section className="card" style={{ marginBottom: 24 }}>
@@ -130,8 +141,20 @@ export default function AdminGallery() {
           <div className="grid">
             {albums.map((album) => (
               <div key={album.id} className="card" style={{ padding: 18 }}>
-                <h3>{album.titre}</h3>
-                <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                  <div>
+                    <h3>{album.titre}</h3>
+                    <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
+                  </div>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => supprimerAlbum(album.id)}
+                    title="Supprimer l’album"
+                    style={{ padding: '6px 10px', height: 36 }}
+                  >
+                    Supprimer l’album
+                  </button>
+                </div>
                 <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
                   {album.photos.map((photo) => (
                     <div key={photo.id}>
