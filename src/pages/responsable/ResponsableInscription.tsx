@@ -430,16 +430,16 @@ export default function ResponsableInscription() {
         </section>
       ) : (
         <section className="card">
-          <div className="form-row inline" style={{ marginBottom: 16, alignItems: 'flex-end' }}>
-            <div className="card" style={{ flex: 1 }}>
+          <div className="summary-grid" style={{ marginBottom: 16 }}>
+            <div className="card card-sm">
               <h3 className="section-title">Participants inscrits</h3>
               <div className="section-title" style={{ margin: 0 }}>{totalParticipants}</div>
             </div>
-            <div className="card" style={{ flex: 1 }}>
+            <div className="card card-sm">
               <h3 className="section-title">Somme versée</h3>
               <div className="section-title" style={{ margin: 0 }}>{totalVerse} FCFA</div>
             </div>
-            <label style={{ flex: 1, minWidth: 220 }}>
+            <label className="summary-search">
               Recherche rapide
               <input
                 className="input"
@@ -451,64 +451,66 @@ export default function ResponsableInscription() {
           </div>
 
           <h2 className="section-title">Mes participants ({filteredParticipants.length})</h2>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Participant</th>
-                <th>Paiement</th>
-                <th>Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredParticipants.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <strong>{p.prenom} {p.nom}</strong>
-                    <div className="small-text">
-                      {p.typeParticipant ? `${p.typeParticipant}` : ''}
-                      {p.typeStaff ? ` • ${p.typeStaff}` : ''}
-                      {p.age ? ` • ${p.age} ans` : ''}
-                      {p.sexe ? ` • ${p.sexe}` : ''}
-                      {p.profession ? ` • ${p.profession}` : ''}
-                      {p.membreOng ? ' • Membre ONG' : ''}
-                    </div>
-                    {p.contact && <div className="small-text">Contact : {p.contact}</div>}
-                  </td>
-                  <td>
-                    <div className="small-text">Versé : {Number(p.montantPaye || 0)} FCFA</div>
-                    {p.statut === 'EN_ATTENTE' && (
-                      <div className="form-row inline" style={{ marginTop: 8 }}>
-                        <input
-                          className="input"
-                          type="number"
-                          min="0"
-                          value={ajouts[p.id] ?? ''}
-                          onChange={(e) => setAjouts((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                          placeholder="Montant"
-                        />
-                        <button className="btn btn-success" onClick={() => updateMontant(p.id)}>
-                          Ajouter
-                        </button>
-                        <button className="btn" style={{ marginLeft: 8 }} onClick={() => commencerEdition(p)}>
-                          Modifier
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span>{p.statut}</span>
-                      {p.statut === 'EN_ATTENTE' && (
-                        <button className="btn btn-danger" onClick={() => supprimerParticipant(p.id)} title="Supprimer" style={{ padding: '6px 10px' }}>
-                          🗑️
-                        </button>
-                      )}
-                    </div>
-                  </td>
+          <div className="table-wrapper">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Participant</th>
+                  <th>Paiement</th>
+                  <th>Statut</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredParticipants.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <strong>{p.prenom} {p.nom}</strong>
+                      <div className="small-text">
+                        {p.typeParticipant ? `${p.typeParticipant}` : ''}
+                        {p.typeStaff ? ` • ${p.typeStaff}` : ''}
+                        {p.age ? ` • ${p.age} ans` : ''}
+                        {p.sexe ? ` • ${p.sexe}` : ''}
+                        {p.profession ? ` • ${p.profession}` : ''}
+                        {p.membreOng ? ' • Membre ONG' : ''}
+                      </div>
+                      {p.contact && <div className="small-text">Contact : {p.contact}</div>}
+                    </td>
+                    <td>
+                      <div className="small-text">Versé : {Number(p.montantPaye || 0)} FCFA</div>
+                      {p.statut === 'EN_ATTENTE' && (
+                        <div className="form-row inline" style={{ marginTop: 8 }}>
+                          <input
+                            className="input"
+                            type="number"
+                            min="0"
+                            value={ajouts[p.id] ?? ''}
+                            onChange={(e) => setAjouts((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                            placeholder="Montant"
+                          />
+                          <button className="btn btn-success" onClick={() => updateMontant(p.id)}>
+                            Ajouter
+                          </button>
+                          <button className="btn" style={{ marginLeft: 8 }} onClick={() => commencerEdition(p)}>
+                            Modifier
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>{p.statut}</span>
+                        {p.statut === 'EN_ATTENTE' && (
+                          <button className="btn btn-danger" onClick={() => supprimerParticipant(p.id)} title="Supprimer" style={{ padding: '6px 10px' }}>
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
     </PageLayout>

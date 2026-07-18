@@ -649,6 +649,25 @@ button {
   margin-top: 0;
 }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.summary-grid > .card,
+.summary-grid > .summary-search {
+  min-width: 0;
+}
+
+.summary-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .table-summary-row {
   font-weight: 700;
   background: #f8fafc;
@@ -733,6 +752,19 @@ img.responsive {
 
   .page-header {
     align-items: stretch;
+  }
+
+  .form-row.inline {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-grid > .card,
+  .summary-grid > .summary-search {
+    width: 100%;
   }
 
   .section-switcher {
