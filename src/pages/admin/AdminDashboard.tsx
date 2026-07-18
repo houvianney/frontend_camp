@@ -6,10 +6,16 @@ import PageLayout from '../../components/PageLayout';
 interface StatLocalite {
   id: string;
   nom: string;
+  participantCount: number;
+  enseignantCount: number;
+  staffCount: number;
+  volontaireCount: number;
+  totalCount: number;
   totalInscrits: number;
   valides: number;
   enAttente: number;
   montantCollecte: number;
+  isSummaryRow?: boolean;
 }
 
 interface StatRessource {
@@ -44,6 +50,7 @@ export default function AdminDashboard() {
   const [participants, setParticipants] = useState<RessourceParticipant[]>([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<'stats' | 'resources'>('stats');
 
   async function charger() {
     setLoading(true);
@@ -81,37 +88,68 @@ export default function AdminDashboard() {
     >
       
 
-      <div className="grid grid-2" style={{ marginBottom: 24 }}>
-        <section className="card">
-          <h2 className="section-title">Statistiques par localité</h2>
+      <div className="section-switcher" role="tablist" aria-label="Choix de vue">
+        <button
+          type="button"
+          className={`switch-btn ${activeView === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveView('stats')}
+        >
+          Statistiques
+        </button>
+        <button
+          type="button"
+          className={`switch-btn ${activeView === 'resources' ? 'active' : ''}`}
+          onClick={() => setActiveView('resources')}
+        >
+          Ressources distribuées
+        </button>
+      </div>
+
+      {activeView === 'stats' ? (
+        <section className="card" style={{ marginBottom: 24 }}>
+          <h2 className="section-title">Statistiques par ville</h2>
           <p className="small-text">Vue temps réel des inscriptions et des montants collectés.</p>
           <div className="card" style={{ padding: 0, boxShadow: 'none', border: 'none' }}>
             <table className="table">
               <thead>
                 <tr>
                   <th>Localité</th>
-                  <th>Inscrits</th>
-                  <th>Validés</th>
-                  <th>En attente</th>
+                  <th>Participant</th>
+                  <th>Enseignant</th>
+                  <th>Staff</th>
+                  <th>Total</th>
                   <th>Montant collecté</th>
                 </tr>
               </thead>
               <tbody>
                 {localites.map((l) => (
-                  <tr key={l.id}>
+                  <tr key={l.id} className={l.isSummaryRow ? 'table-summary-row' : ''}>
                     <td>{l.nom}</td>
-                    <td>{l.totalInscrits}</td>
-                    <td>{l.valides}</td>
-                    <td>{l.enAttente}</td>
-                    <td>{l.montantCollecte.toLocaleString('fr-FR')} FCFA</td>
+                    {l.id === 'volontaires-summary' ? (
+                      <>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>{l.totalCount}</td>
+                        <td>{l.montantCollecte.toLocaleString('fr-FR')} FCFA</td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{l.participantCount}</td>
+                        <td>{l.enseignantCount}</td>
+                        <td>{l.staffCount}</td>
+                        <td>{l.totalCount}</td>
+                        <td>{l.montantCollecte.toLocaleString('fr-FR')} FCFA</td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
-
-        <section className="card">
+      ) : (
+        <section className="card" style={{ marginBottom: 24 }}>
           <h2 className="section-title">Ressources distribuées</h2>
           <p className="small-text">Suivi par type de ressource (repas / t-shirt / présence).</p>
           <div className="card" style={{ padding: 0, boxShadow: 'none', border: 'none' }}>
@@ -121,6 +159,7 @@ export default function AdminDashboard() {
                   <th>Ressource</th>
                   <th>Type</th>
                   <th>Total distribué</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +179,7 @@ export default function AdminDashboard() {
             </table>
           </div>
         </section>
-      </div>
+      )}
 
       {selectedRessource && (
         <section className="card" style={{ marginTop: 24 }}>

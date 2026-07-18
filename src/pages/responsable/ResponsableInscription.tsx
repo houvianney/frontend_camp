@@ -29,7 +29,7 @@ export default function ResponsableInscription() {
   const [adresse, setAdresse] = useState('');
   const [contact, setContact] = useState('');
   const [membreOng, setMembreOng] = useState(false);
-  const [typeParticipant, setTypeParticipant] = useState('PARTICIPANT');
+  const [typeParticipant, setTypeParticipant] = useState('');
   const [typeStaff, setTypeStaff] = useState('');
   const [montantInitial, setMontantInitial] = useState('');
   const [message, setMessage] = useState<string>('');
@@ -38,8 +38,11 @@ export default function ResponsableInscription() {
   const [ajouts, setAjouts] = useState<Record<string, string>>({});
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<'inscription' | 'participants'>('inscription');
 
-  const staffTypes = ['Media', 'Cuisine', 'Accueil', 'Sécurité', 'Prestations', 'Inscription', 'Organisateurs'];
+  const staffTypes = ['Entretien', 'Podium', 'Formateur Académie', 'Media', 'Cuisine', 'Accueil', 'Sécurité', 'Prestations', 'Inscription', 'Organisateurs'];
+  const showExtendedFields = typeParticipant === 'PARTICIPANT' || typeParticipant === 'VOLONTAIRE';
+  const showStaffType = typeParticipant === 'STAFF';
 
   async function charger() {
     try {
@@ -59,9 +62,10 @@ export default function ResponsableInscription() {
   function validerFormulaire(): boolean {
     const newErrors: Record<string, string> = {};
 
+    if (!typeParticipant) newErrors.typeParticipant = 'Le type de participant est obligatoire.';
     if (!nom.trim()) newErrors.nom = 'Le nom est obligatoire.';
     if (!prenom.trim()) newErrors.prenom = 'Le prénom est obligatoire.';
-    if (!age.trim()) newErrors.age = 'L\'âge est obligatoire.';
+    if (showExtendedFields && !age.trim()) newErrors.age = 'L\'âge est obligatoire.';
     if (age && isNaN(Number(age))) newErrors.age = 'L\'âge doit être un nombre.';
     if (!sexe) newErrors.sexe = 'Le sexe est obligatoire.';
     if (typeParticipant === 'STAFF' && !typeStaff) newErrors.typeStaff = 'Le type de staff est obligatoire pour le staff.';
@@ -90,12 +94,12 @@ export default function ResponsableInscription() {
         await api.patch(`/participants/${editingId}`, {
           nom: nom.trim(),
           prenom: prenom.trim(),
-          age: Number(age),
+          age: showExtendedFields ? Number(age) : undefined,
           sexe,
-          profession: profession.trim() || undefined,
-          adresse: adresse.trim() || undefined,
+          profession: showExtendedFields ? profession.trim() || undefined : undefined,
+          adresse: showExtendedFields ? adresse.trim() || undefined : undefined,
           contact: contact.trim(),
-          membreOng,
+          membreOng: showExtendedFields ? membreOng : undefined,
           typeParticipant,
           typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
           montantTotal: 0,
@@ -106,12 +110,12 @@ export default function ResponsableInscription() {
         await api.post('/participants', {
           nom: nom.trim(),
           prenom: prenom.trim(),
-          age: Number(age),
+          age: showExtendedFields ? Number(age) : undefined,
           sexe,
-          profession: profession.trim() || undefined,
-          adresse: adresse.trim() || undefined,
+          profession: showExtendedFields ? profession.trim() || undefined : undefined,
+          adresse: showExtendedFields ? adresse.trim() || undefined : undefined,
           contact: contact.trim(),
-          membreOng,
+          membreOng: showExtendedFields ? membreOng : undefined,
           typeParticipant,
           typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
           montantTotal: 0,
@@ -128,12 +132,13 @@ export default function ResponsableInscription() {
       setAdresse('');
       setContact('');
       setMembreOng(false);
-      setTypeParticipant('PARTICIPANT');
+      setTypeParticipant('');
       setTypeStaff('');
       setMontantInitial('');
       setErrors({});
       setEditingId(null);
       setMessageType('success');
+      setActiveView('participants');
       await charger();
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || err.message || 'Erreur lors de l\'inscription.';
@@ -154,9 +159,10 @@ export default function ResponsableInscription() {
     setAdresse(p.adresse || '');
     setContact(p.contact || '');
     setMembreOng(Boolean(p.membreOng));
-    setTypeParticipant(p.typeParticipant || 'PARTICIPANT');
+    setTypeParticipant(p.typeParticipant || '');
     setTypeStaff(p.typeStaff || '');
     setMontantInitial(String(Number(p.montantPaye || 0)));
+    setActiveView('inscription');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -212,268 +218,299 @@ export default function ResponsableInscription() {
 
   return (
     <PageLayout title="Inscription — ma localité">
-      <section className="card" style={{ marginBottom: 24 }}>
-        <h2 className="section-title">Inscrire un participant</h2>
-        {message && (
-          <div className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-error'}`}>
-            {message}
-          </div>
-        )}
+      <div className="section-switcher" role="tablist" aria-label="Choix d’action">
+        <button
+          type="button"
+          className={`switch-btn ${activeView === 'inscription' ? 'active' : ''}`}
+          onClick={() => setActiveView('inscription')}
+        >
+          Nouvelle inscription
+        </button>
+        <button
+          type="button"
+          className={`switch-btn ${activeView === 'participants' ? 'active' : ''}`}
+          onClick={() => setActiveView('participants')}
+        >
+          Compléments
+        </button>
+      </div>
 
-        <form onSubmit={inscrire} className="form-row">
-          <div className="form-row inline">
+      {activeView === 'inscription' ? (
+        <section className="card" style={{ marginBottom: 24 }}>
+          <h2 className="section-title">Inscrire un participant</h2>
+          {message && (
+            <div className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-error'}`}>
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={inscrire} className="form-row">
             <label>
-              Nom *
-              <input 
-                className={`input ${errors.nom ? 'input-error' : ''}`}
-                value={nom} 
+              Type de participant *
+              <select
+                className={`input ${errors.typeParticipant ? 'input-error' : ''}`}
+                value={typeParticipant}
                 onChange={(e) => {
-                  setNom(e.target.value);
-                  if (errors.nom) setErrors(prev => ({ ...prev, nom: '' }));
-                }}
-              />
-              {errors.nom && <div className="error-text">{errors.nom}</div>}
-            </label>
-
-            <label>
-              Prénom *
-              <input 
-                className={`input ${errors.prenom ? 'input-error' : ''}`}
-                value={prenom} 
-                onChange={(e) => {
-                  setPrenom(e.target.value);
-                  if (errors.prenom) setErrors(prev => ({ ...prev, prenom: '' }));
-                }}
-              />
-              {errors.prenom && <div className="error-text">{errors.prenom}</div>}
-            </label>
-          </div>
-
-          <div className="form-row inline">
-            <label>
-              Âge *
-              <input 
-                className={`input ${errors.age ? 'input-error' : ''}`}
-                type="number" 
-                min="0" 
-                value={age} 
-                onChange={(e) => {
-                  setAge(e.target.value);
-                  if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
-                }}
-              />
-              {errors.age && <div className="error-text">{errors.age}</div>}
-            </label>
-
-            <label>
-              Sexe *
-              <select 
-                className={`input ${errors.sexe ? 'input-error' : ''}`}
-                value={sexe} 
-                onChange={(e) => {
-                  setSexe(e.target.value);
-                  if (errors.sexe) setErrors(prev => ({ ...prev, sexe: '' }));
-                }}
-              >
-                <option value="">Sélectionner</option>
-                <option value="M">Masculin</option>
-                <option value="F">Féminin</option>
-              </select>
-              {errors.sexe && <div className="error-text">{errors.sexe}</div>}
-            </label>
-          </div>
-
-          <div className="form-row inline">
-            <label>
-              Profession
-              <input 
-                className="input"
-                value={profession} 
-                onChange={(e) => setProfession(e.target.value)}
-              />
-            </label>
-
-            <label>
-              Adresse
-              <input 
-                className="input"
-                value={adresse} 
-                onChange={(e) => setAdresse(e.target.value)}
-              />
-            </label>
-          </div>
-
-          <div className="form-row inline">
-            <label>
-              Contact *
-              <input 
-                className={`input ${errors.contact ? 'input-error' : ''}`}
-                type="tel" 
-                value={contact} 
-                onChange={(e) => {
-                  setContact(e.target.value);
-                  if (errors.contact) setErrors(prev => ({ ...prev, contact: '' }));
-                }}
-              />
-              {errors.contact && <div className="error-text">{errors.contact}</div>}
-            </label>
-
-            <label>
-              Type *
-              <select 
-                className="input"
-                value={typeParticipant} 
-                onChange={(e) => {
-                  setTypeParticipant(e.target.value);
-                  if (e.target.value !== 'STAFF') {
+                  const nextType = e.target.value;
+                  setTypeParticipant(nextType);
+                  if (nextType !== 'STAFF') {
                     setTypeStaff('');
                     if (errors.typeStaff) setErrors((prev) => ({ ...prev, typeStaff: '' }));
                   }
+                  if (errors.typeParticipant) setErrors((prev) => ({ ...prev, typeParticipant: '' }));
                 }}
               >
+                <option value="">Sélectionner</option>
                 <option value="PARTICIPANT">Participant</option>
                 <option value="STAFF">Staff</option>
                 <option value="ENSEIGNANT">Enseignant</option>
                 <option value="VOLONTAIRE">Volontaire</option>
               </select>
+              {errors.typeParticipant && <div className="error-text">{errors.typeParticipant}</div>}
+            </label>
+
+            {typeParticipant ? (
+              <>
+                <div className="form-row inline">
+                  <label>
+                    Nom *
+                    <input 
+                      className={`input ${errors.nom ? 'input-error' : ''}`}
+                      value={nom} 
+                      onChange={(e) => {
+                        setNom(e.target.value);
+                        if (errors.nom) setErrors(prev => ({ ...prev, nom: '' }));
+                      }}
+                    />
+                    {errors.nom && <div className="error-text">{errors.nom}</div>}
+                  </label>
+
+                  <label>
+                    Prénom *
+                    <input 
+                      className={`input ${errors.prenom ? 'input-error' : ''}`}
+                      value={prenom} 
+                      onChange={(e) => {
+                        setPrenom(e.target.value);
+                        if (errors.prenom) setErrors(prev => ({ ...prev, prenom: '' }));
+                      }}
+                    />
+                    {errors.prenom && <div className="error-text">{errors.prenom}</div>}
+                  </label>
+                </div>
+
+                <div className="form-row inline">
+                  <label>
+                    Sexe *
+                    <select 
+                      className={`input ${errors.sexe ? 'input-error' : ''}`}
+                      value={sexe} 
+                      onChange={(e) => {
+                        setSexe(e.target.value);
+                        if (errors.sexe) setErrors(prev => ({ ...prev, sexe: '' }));
+                      }}
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="M">Masculin</option>
+                      <option value="F">Féminin</option>
+                    </select>
+                    {errors.sexe && <div className="error-text">{errors.sexe}</div>}
+                  </label>
+
+                  <label>
+                    Contact *
+                    <input 
+                      className={`input ${errors.contact ? 'input-error' : ''}`}
+                      type="tel" 
+                      value={contact} 
+                      onChange={(e) => {
+                        setContact(e.target.value);
+                        if (errors.contact) setErrors(prev => ({ ...prev, contact: '' }));
+                      }}
+                    />
+                    {errors.contact && <div className="error-text">{errors.contact}</div>}
+                  </label>
+                </div>
+
+                {showExtendedFields && (
+                  <div className="form-row inline">
+                    <label>
+                      Âge *
+                      <input 
+                        className={`input ${errors.age ? 'input-error' : ''}`}
+                        type="number" 
+                        min="0" 
+                        value={age} 
+                        onChange={(e) => {
+                          setAge(e.target.value);
+                          if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+                        }}
+                      />
+                      {errors.age && <div className="error-text">{errors.age}</div>}
+                    </label>
+
+                    <label>
+                      Profession
+                      <input 
+                        className="input"
+                        value={profession} 
+                        onChange={(e) => setProfession(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {showExtendedFields && (
+                  <div className="form-row inline">
+                    <label>
+                      Adresse
+                      <input 
+                        className="input"
+                        value={adresse} 
+                        onChange={(e) => setAdresse(e.target.value)}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 30 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={membreOng} 
+                        onChange={(e) => setMembreOng(e.target.checked)}
+                      />
+                      Membre de l'ONG
+                    </label>
+                  </div>
+                )}
+
+                {showStaffType && (
+                  <div className="form-row inline">
+                    <label>
+                      Type de staff *
+                      <select
+                        className={`input ${errors.typeStaff ? 'input-error' : ''}`}
+                        value={typeStaff}
+                        onChange={(e) => {
+                          setTypeStaff(e.target.value);
+                          if (errors.typeStaff) setErrors((prev) => ({ ...prev, typeStaff: '' }));
+                        }}
+                      >
+                        <option value="">Sélectionner le type de staff</option>
+                        {staffTypes.map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                      {errors.typeStaff && <div className="error-text">{errors.typeStaff}</div>}
+                    </label>
+                  </div>
+                )}
+
+                <label>
+                  Montant de la première tranche *
+                  <input
+                    className={`input ${errors.montantInitial ? 'input-error' : ''}`}
+                    type="number"
+                    min="1"
+                    max="20000"
+                    value={montantInitial}
+                    onChange={(e) => {
+                      setMontantInitial(e.target.value);
+                      if (errors.montantInitial) setErrors(prev => ({ ...prev, montantInitial: '' }));
+                    }}
+                    placeholder="1 à 20 000"
+                  />
+                  {errors.montantInitial && <div className="error-text">{errors.montantInitial}</div>}
+                </label>
+              </>
+            ) : null}
+
+            <button className="btn btn-primary" type="submit">
+              Inscrire
+            </button>
+          </form>
+        </section>
+      ) : (
+        <section className="card">
+          <div className="form-row inline" style={{ marginBottom: 16, alignItems: 'flex-end' }}>
+            <div className="card" style={{ flex: 1 }}>
+              <h3 className="section-title">Participants inscrits</h3>
+              <div className="section-title" style={{ margin: 0 }}>{totalParticipants}</div>
+            </div>
+            <div className="card" style={{ flex: 1 }}>
+              <h3 className="section-title">Somme versée</h3>
+              <div className="section-title" style={{ margin: 0 }}>{totalVerse} FCFA</div>
+            </div>
+            <label style={{ flex: 1, minWidth: 220 }}>
+              Recherche rapide
+              <input
+                className="input"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Nom, prénom, contact..."
+              />
             </label>
           </div>
 
-          {typeParticipant === 'STAFF' && (
-            <div className="form-row inline">
-              <label>
-                Type de staff *
-                <select
-                  className={`input ${errors.typeStaff ? 'input-error' : ''}`}
-                  value={typeStaff}
-                  onChange={(e) => {
-                    setTypeStaff(e.target.value);
-                    if (errors.typeStaff) setErrors((prev) => ({ ...prev, typeStaff: '' }));
-                  }}
-                >
-                  <option value="">Sélectionner le type de staff</option>
-                  {staffTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-                {errors.typeStaff && <div className="error-text">{errors.typeStaff}</div>}
-              </label>
-            </div>
-          )}
-
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input 
-              type="checkbox" 
-              checked={membreOng} 
-              onChange={(e) => setMembreOng(e.target.checked)}
-            />
-            Membre de l'ONG
-          </label>
-
-          <label>
-            Montant de la première tranche *
-            <input
-              className={`input ${errors.montantInitial ? 'input-error' : ''}`}
-              type="number"
-              min="1"
-              max="20000"
-              value={montantInitial}
-              onChange={(e) => {
-                setMontantInitial(e.target.value);
-                if (errors.montantInitial) setErrors(prev => ({ ...prev, montantInitial: '' }));
-              }}
-              placeholder="1 à 20 000"
-            />
-            {errors.montantInitial && <div className="error-text">{errors.montantInitial}</div>}
-          </label>
-
-          <button className="btn btn-primary" type="submit">
-            Inscrire
-          </button>
-        </form>
-      </section>
-
-      <section className="card">
-        <div className="form-row inline" style={{ marginBottom: 16, alignItems: 'flex-end' }}>
-          <div className="card" style={{ flex: 1 }}>
-            <h3 className="section-title">Participants inscrits</h3>
-            <div className="section-title" style={{ margin: 0 }}>{totalParticipants}</div>
-          </div>
-          <div className="card" style={{ flex: 1 }}>
-            <h3 className="section-title">Somme versée</h3>
-            <div className="section-title" style={{ margin: 0 }}>{totalVerse} FCFA</div>
-          </div>
-          <label style={{ flex: 1, minWidth: 220 }}>
-            Recherche rapide
-            <input
-              className="input"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Nom, prénom, contact..."
-            />
-          </label>
-        </div>
-
-        <h2 className="section-title">Mes participants ({filteredParticipants.length})</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Participant</th>
-              <th>Paiement</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredParticipants.map((p) => (
-              <tr key={p.id}>
-                <td>
-                  <strong>{p.prenom} {p.nom}</strong>
-                  <div className="small-text">
-                    {p.typeParticipant ? `${p.typeParticipant}` : ''}
-                    {p.typeStaff ? ` • ${p.typeStaff}` : ''}
-                    {p.age ? ` • ${p.age} ans` : ''}
-                    {p.sexe ? ` • ${p.sexe}` : ''}
-                    {p.profession ? ` • ${p.profession}` : ''}
-                    {p.membreOng ? ' • Membre ONG' : ''}
-                  </div>
-                  {p.contact && <div className="small-text">Contact : {p.contact}</div>}
-                </td>
-                <td>
-                  <div className="small-text">Versé : {Number(p.montantPaye || 0)} FCFA</div>
-                  {p.statut === 'EN_ATTENTE' && (
-                    <div className="form-row inline" style={{ marginTop: 8 }}>
-                      <input
-                        className="input"
-                        type="number"
-                        min="0"
-                        value={ajouts[p.id] ?? ''}
-                        onChange={(e) => setAjouts((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                        placeholder="Montant"
-                      />
-                      <button className="btn btn-success" onClick={() => updateMontant(p.id)}>
-                        Ajouter
-                      </button>
-                      <button className="btn" style={{ marginLeft: 8 }} onClick={() => commencerEdition(p)}>
-                        Modifier
-                      </button>
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span>{p.statut}</span>
-                    {p.statut === 'EN_ATTENTE' && (
-                      <button className="btn btn-danger" onClick={() => supprimerParticipant(p.id)} title="Supprimer" style={{ padding: '6px 10px' }}>
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-                </td>
+          <h2 className="section-title">Mes participants ({filteredParticipants.length})</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Participant</th>
+                <th>Paiement</th>
+                <th>Statut</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            </thead>
+            <tbody>
+              {filteredParticipants.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    <strong>{p.prenom} {p.nom}</strong>
+                    <div className="small-text">
+                      {p.typeParticipant ? `${p.typeParticipant}` : ''}
+                      {p.typeStaff ? ` • ${p.typeStaff}` : ''}
+                      {p.age ? ` • ${p.age} ans` : ''}
+                      {p.sexe ? ` • ${p.sexe}` : ''}
+                      {p.profession ? ` • ${p.profession}` : ''}
+                      {p.membreOng ? ' • Membre ONG' : ''}
+                    </div>
+                    {p.contact && <div className="small-text">Contact : {p.contact}</div>}
+                  </td>
+                  <td>
+                    <div className="small-text">Versé : {Number(p.montantPaye || 0)} FCFA</div>
+                    {p.statut === 'EN_ATTENTE' && (
+                      <div className="form-row inline" style={{ marginTop: 8 }}>
+                        <input
+                          className="input"
+                          type="number"
+                          min="0"
+                          value={ajouts[p.id] ?? ''}
+                          onChange={(e) => setAjouts((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                          placeholder="Montant"
+                        />
+                        <button className="btn btn-success" onClick={() => updateMontant(p.id)}>
+                          Ajouter
+                        </button>
+                        <button className="btn" style={{ marginLeft: 8 }} onClick={() => commencerEdition(p)}>
+                          Modifier
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>{p.statut}</span>
+                      {p.statut === 'EN_ATTENTE' && (
+                        <button className="btn btn-danger" onClick={() => supprimerParticipant(p.id)} title="Supprimer" style={{ padding: '6px 10px' }}>
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
     </PageLayout>
   );
 }
