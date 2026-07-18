@@ -109,7 +109,7 @@ export default function AdminDashboard() {
         <section className="card" style={{ marginBottom: 24 }}>
           <h2 className="section-title">Statistiques par ville</h2>
           <p className="small-text">Vue temps réel des inscriptions et des montants collectés.</p>
-          <div className="card" style={{ padding: 0, boxShadow: 'none', border: 'none' }}>
+          <div className="table-wrapper">
             <table className="table">
               <thead>
                 <tr>
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
         <section className="card" style={{ marginBottom: 24 }}>
           <h2 className="section-title">Ressources distribuées</h2>
           <p className="small-text">Suivi par type de ressource (repas / t-shirt / présence).</p>
-          <div className="card" style={{ padding: 0, boxShadow: 'none', border: 'none' }}>
+          <div className="table-wrapper">
             <table className="table">
               <thead>
                 <tr>
