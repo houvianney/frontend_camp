@@ -70,6 +70,35 @@ export default function ParticipantEspace() {
     window.setTimeout(() => setLoadingMore(false), 200);
   };
 
+  const handleDownloadPhoto = async (photoUrl: string) => {
+    try {
+      const response = await fetch(photoUrl, { credentials: 'same-origin' });
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const fileName = decodeURIComponent((photoUrl.split('/').pop() || 'photo.jpg').split('?')[0]);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      const fallbackLink = document.createElement('a');
+      fallbackLink.href = photoUrl;
+      fallbackLink.download = 'photo.jpg';
+      fallbackLink.target = '_blank';
+      fallbackLink.rel = 'noopener noreferrer';
+      fallbackLink.style.display = 'none';
+      document.body.appendChild(fallbackLink);
+      fallbackLink.click();
+      document.body.removeChild(fallbackLink);
+    }
+  };
+
   if (erreur) {
     return (
       <div className="page-shell text-center">
@@ -123,7 +152,7 @@ export default function ParticipantEspace() {
         )}
       </section>
 
-      <section className="card">
+      {/* <section className="card">
         <h2 className="section-title">Programme</h2>
         {programme.length === 0 ? (
           <p>Aucun programme disponible pour le moment.</p>
@@ -139,7 +168,7 @@ export default function ParticipantEspace() {
             ))}
           </div>
         )}
-      </section>
+      </section> */}
 
       <section className="card">
         <h2 className="section-title">Galerie photos</h2>
@@ -228,9 +257,9 @@ export default function ParticipantEspace() {
               alt="Aperçu photo"
               style={{ maxWidth: '94vw', maxHeight: '94vh', width: 'auto', height: 'auto', objectFit: 'contain', borderRadius: 20 }}
             />
-            <a
-              href={selectedPhoto}
-              download
+            <button
+              type="button"
+              onClick={() => void handleDownloadPhoto(selectedPhoto)}
               style={{
                 position: 'absolute',
                 bottom: 16,
@@ -239,13 +268,15 @@ export default function ParticipantEspace() {
                 color: '#111',
                 padding: '10px 14px',
                 borderRadius: 999,
+                border: 'none',
                 textDecoration: 'none',
                 fontWeight: 700,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                cursor: 'pointer',
               }}
             >
               Télécharger
-            </a>
+            </button>
             <button
               type="button"
               onClick={() => setSelectedPhoto(null)}
