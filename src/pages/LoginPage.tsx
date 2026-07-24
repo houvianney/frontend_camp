@@ -13,7 +13,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      if (result.requiresPasswordChange) {
+        navigate('/change-password', { state: { fromLogin: true } });
+        return;
+      }
       navigate('/');
     } catch {
       setError('Identifiants invalides');

@@ -30,6 +30,7 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
           ],
         },
         { label: 'Localités', to: '/admin/localites', description: 'Suivi par territoire' },
+        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
       ],
     },
     {
@@ -55,6 +56,7 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
           ],
         },
         { label: 'Localités', to: '/admin/localites', description: 'Suivi par territoire' },
+        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
       ],
     },
     {
@@ -69,13 +71,19 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
   RESPONSABLE: [
     {
       title: 'Espace responsable',
-      items: [{ label: 'Mes inscriptions', to: '/responsable', description: 'Ajouter et suivre' }],
+      items: [
+        { label: 'Mes inscriptions', to: '/responsable', description: 'Ajouter et suivre' },
+        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
+      ],
     },
   ],
   CONTROLEUR: [
     {
       title: 'Espace contrôleur',
-      items: [{ label: 'Scanner', to: '/controleur', description: 'Valider les passages' }],
+      items: [
+        { label: 'Scanner', to: '/controleur', description: 'Valider les passages' },
+        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
+      ],
     },
   ],
 };

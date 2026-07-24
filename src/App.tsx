@@ -13,10 +13,12 @@ import AdminGallery from './pages/admin/AdminGallery';
 import ResponsableInscription from './pages/responsable/ResponsableInscription';
 import ControleurScan from './pages/controleur/ControleurScan';
 import ParticipantEspace from './pages/participant/ParticipantEspace';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 
 function RequireRole({ role, children }: { role: string; children: JSX.Element }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
+  if (user.passwordMustChange) return <Navigate to="/change-password" replace />;
   const allowedRoles = role === 'ADMIN' ? ['ADMIN', 'ADMIN_SECONDARY'] : [role];
   if (!allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
   return children;
@@ -25,6 +27,7 @@ function RequireRole({ role, children }: { role: string; children: JSX.Element }
 function Home() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
+  if (user.passwordMustChange) return <Navigate to="/change-password" replace />;
   if (user.role === 'ADMIN' || user.role === 'ADMIN_SECONDARY') return <Navigate to="/admin" replace />;
   if (user.role === 'RESPONSABLE') return <Navigate to="/responsable" replace />;
   if (user.role === 'CONTROLEUR') return <Navigate to="/controleur" replace />;
@@ -37,6 +40,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/" element={<Home />} />
 
           {/* Espace Admin */}

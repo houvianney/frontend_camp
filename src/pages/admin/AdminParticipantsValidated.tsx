@@ -48,6 +48,9 @@ export default function AdminParticipantsValidated() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
+  const [showAnonymousForm, setShowAnonymousForm] = useState(false);
+  const [anonymousCounts, setAnonymousCounts] = useState({ enseignants: '30', staff: '20', participants: '10', volontaires: '0' });
+  const [anonymousLoading, setAnonymousLoading] = useState(false);
 
   async function charger() {
     setLoading(true);
@@ -163,6 +166,77 @@ export default function AdminParticipantsValidated() {
     } catch (err: any) {
       console.error(err);
       alert(err?.response?.data?.message || 'Erreur lors de l\'enregistrement');
+    }
+  }
+
+  async function genererBadgesAnonymes() {
+    setAnonymousLoading(true);
+    try {
+      const payload = {
+        enseignants: Number(anonymousCounts.enseignants || 0),
+        staff: Number(anonymousCounts.staff || 0),
+        participants: Number(anonymousCounts.participants || 0),
+        volontaires: Number(anonymousCounts.volontaires || 0),
+      };
+      const { data } = await api.post('/badges/anonymes/generer', payload);
+      const printWindow = window.open('', '_blank', 'width=1100,height=900');
+      if (!printWindow) return;
+
+      const cards = data
+        .map((item: any) => {
+          const typeValue = item.typeParticipant || 'Participant';
+          let accent = '#2563eb';
+          const typeLower = (typeValue || '').toLowerCase();
+          if (typeLower.includes('enseignant')) accent = '#16a34a';
+          else if (typeLower.includes('staff') || typeLower.includes('staffs')) accent = '#7c3aed';
+          else if (typeLower.includes('volont')) accent = '#f97316';
+
+          return `
+            <div class="badge-card" style="border: 4px solid ${accent}; background: white; border-radius: 20px; padding: 18px; box-sizing: border-box;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img src="/icon_iyf.png" alt="logo" style="width:42px;height:42px;object-fit:contain;" />
+                </div>
+                <div style="font-weight:700;color:${accent};">Badge anonyme</div>
+              </div>
+              <div style="text-align:center;font-weight:800;font-size:1.05rem;margin-bottom:6px;color:${accent};">Youth Leader Camp</div>
+              <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
+              <div style="text-align:center;font-size:1rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Code :</span> <strong>${item.code}</strong></div>
+              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;line-height:1.5;"><span style="color:#475569;">Nom :</span><br />&nbsp;</div>
+              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;line-height:1.5;"><span style="color:#475569;">Prénom :</span><br />&nbsp;</div>
+              <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;line-height:1.5;"><span style="color:#475569;">Classe :</span><br />&nbsp;</div>
+              <div style="display:flex;justify-content:center;margin-top:6px;">
+                <img src="${item.qrDataUrl}" alt="QR code" style="width:180px;height:180px;object-fit:contain;" />
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Badges anonymes à imprimer</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 24px; }
+              .badge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+              .badge-card { width: 100%; min-height: 320px; page-break-inside: avoid; }
+              @media print { body { background: white; padding: 0; } .badge-grid { gap: 12px; } }
+            </style>
+          </head>
+          <body><div class="badge-grid">${cards}</div></body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 800);
+      setShowAnonymousForm(false);
+      await charger();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.message || 'Erreur lors de la génération des badges anonymes');
+    } finally {
+      setAnonymousLoading(false);
     }
   }
 
@@ -427,11 +501,48 @@ export default function AdminParticipantsValidated() {
               ))}
             </select>
           </label>
-          <button className="btn btn-success" onClick={imprimerBadges} disabled={!selectedPrint.length || loading}>
-            Imprimer la sélection ({selectedPrint.length})
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn btn-success" onClick={imprimerBadges} disabled={!selectedPrint.length || loading}>
+              Imprimer la sélection ({selectedPrint.length})
+            </button>
+            <button className="btn btn-primary" onClick={() => setShowAnonymousForm((v) => !v)}>
+              Générer badges anonymes
+            </button>
+          </div>
         </div>
       </section>
+
+      {showAnonymousForm && (
+        <section className="card card-sm" style={{ marginBottom: 18 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <h3 className="section-title" style={{ marginBottom: 4 }}>Badges anonymes à imprimer</h3>
+              <p className="small-text">Générez des badges uniques sans nom ni prénom pour les inscriptions du jour J.</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <label className="field" style={{ minWidth: 140, margin: 0 }}>
+                <span className="field-label">Enseignants</span>
+                <input className="input" type="number" min="0" value={anonymousCounts.enseignants} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, enseignants: e.target.value }))} />
+              </label>
+              <label className="field" style={{ minWidth: 140, margin: 0 }}>
+                <span className="field-label">Staff</span>
+                <input className="input" type="number" min="0" value={anonymousCounts.staff} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, staff: e.target.value }))} />
+              </label>
+              <label className="field" style={{ minWidth: 140, margin: 0 }}>
+                <span className="field-label">Participants</span>
+                <input className="input" type="number" min="0" value={anonymousCounts.participants} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, participants: e.target.value }))} />
+              </label>
+              <label className="field" style={{ minWidth: 140, margin: 0 }}>
+                <span className="field-label">Volontaires</span>
+                <input className="input" type="number" min="0" value={anonymousCounts.volontaires} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, volontaires: e.target.value }))} />
+              </label>
+              <button className="btn btn-primary" onClick={genererBadgesAnonymes} disabled={anonymousLoading}>
+                {anonymousLoading ? 'Génération...' : 'Imprimer ces badges'}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {loading ? <p className="small-text">Chargement...</p> : (
         <section className="card">

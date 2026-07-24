@@ -10,12 +10,14 @@ interface AuthUser {
   role: Role;
   localiteId?: string;
   controleType?: 'PRESENCE' | 'TSHIRT' | 'NOURRITURE';
+  passwordMustChange?: boolean;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresPasswordChange: boolean }>;
   logout: () => void;
+  updateUser: (user: AuthUser | null) => void;
   // whether a visible warning should be shown before auto logout
   showIdleWarning: boolean;
   // keep the session alive (user answered the warning)
@@ -125,11 +127,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[AUTH] Login attempt', { email });
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      console.log('[AUTH] Login success', { user: data.user, role: data.user?.role });
+      const authUser = {
+        ...data.user,
+        passwordMustChange: data.requiresPasswordChange || data.user?.passwordMustChange || false,
+      };
+      console.log('[AUTH] Login success', { user: authUser, role: authUser?.role });
       localStorage.setItem('token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify(authUser));
       try { localStorage.setItem('lastActivity', Date.now().toString()); } catch (e) {}
-      setUser(data.user);
+      setUser(authUser);
+      return { requiresPasswordChange: Boolean(data.requiresPasswordChange) };
     } catch (err) {
       console.error('[AUTH] Login failed', err);
       throw err;
@@ -143,6 +150,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  function updateUser(nextUser: AuthUser | null) {
+    setUser(nextUser);
+    if (nextUser) {
+      localStorage.setItem('user', JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }
+
   function keepAlive() {
     try { localStorage.setItem('lastActivity', Date.now().toString()); } catch (e) {}
     setShowIdleWarning(false);
@@ -152,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, showIdleWarning, keepAlive }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, login, logout, updateUser, showIdleWarning, keepAlive }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
