@@ -51,6 +51,7 @@ export default function ParticipantEspace() {
   const [erreur, setErreur] = useState('');
   const [visibleAlbums, setVisibleAlbums] = useState<Record<string, number>>({});
   const [loadingMore, setLoadingMore] = useState(false);
+  const [hoveredPhoto, setHoveredPhoto] = useState<string | null>(null);
 
   useEffect(() => {
     if (!badgeToken) return;
@@ -143,33 +144,59 @@ export default function ParticipantEspace() {
       <section className="card">
         <h2 className="section-title">Galerie photos</h2>
         <p className="small-text" style={{ marginBottom: 14 }}>
-          Toutes les photos de l’événement sont affichées ici, sans recherche ni filtre : faites simplement défiler pour trouver celles qui vous concernent.
+          Cliquez sur une image pour l’ouvrir en grand, puis téléchargez-la facilement depuis l’aperçu.
         </p>
         {albums.length === 0 ? (
           <p>Aucune galerie n’est encore disponible.</p>
         ) : (
           albums.map((album) => (
-            <div key={album.id} className="card" style={{ marginBottom: 18 }}>
+            <div key={album.id} className="card" style={{ marginBottom: 18, padding: 14 }}>
               <h3>{album.titre}</h3>
               <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
+              <div style={{ columnCount: 2, columnGap: 12 }}>
                 {(album.photos || [])
                   .slice(0, visibleAlbums[album.id] || 12)
-                  .map((photo) => (
-                    <button
-                      key={photo.id}
-                      type="button"
-                      onClick={() => setSelectedPhoto(getPublicAssetUrl(photo.url))}
-                      style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
-                    >
-                      <img
-                        src={getPublicAssetUrl(photo.url)}
-                        alt={album.titre}
-                        className="responsive"
-                        style={{ borderRadius: 18, width: '100%', height: 120, objectFit: 'cover' }}
-                      />
-                    </button>
-                  ))}
+                  .map((photo) => {
+                    const imageUrl = getPublicAssetUrl(photo.url);
+                    return (
+                      <div
+                        key={photo.id}
+                        style={{ breakInside: 'avoid', marginBottom: 12, position: 'relative', borderRadius: 18, overflow: 'hidden', background: '#f5f5f5' }}
+                        onMouseEnter={() => setHoveredPhoto(imageUrl)}
+                        onMouseLeave={() => setHoveredPhoto(null)}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPhoto(imageUrl)}
+                          style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', width: '100%' }}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={album.titre}
+                            style={{ width: '100%', display: 'block', objectFit: 'cover', minHeight: 120, maxHeight: 240 }}
+                          />
+                        </button>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            justifyContent: 'flex-end',
+                            padding: 10,
+                            opacity: hoveredPhoto === imageUrl ? 1 : 0,
+                            transition: 'opacity 0.2s ease',
+                            pointerEvents: 'none',
+                          }}
+                        >
+                          <span style={{ background: 'rgba(255,255,255,0.9)', padding: '7px 10px', borderRadius: 999, fontSize: 13, fontWeight: 700 }}>
+                            ⬇ Télécharger
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
               {album.photos.length > (visibleAlbums[album.id] || 12) && (
                 <button className="btn btn-secondary" style={{ marginTop: 12 }} onClick={() => loadMorePhotos(album.id, album.photos.length)} disabled={loadingMore}>
@@ -180,6 +207,68 @@ export default function ParticipantEspace() {
           ))
         )}
       </section>
+
+      {selectedPhoto && (
+        <div
+          onClick={() => setSelectedPhoto(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: 20,
+          }}
+        >
+          <div style={{ position: 'relative', maxWidth: '94vw', maxHeight: '94vh' }} onClick={(e) => e.stopPropagation()}>
+            <img
+              src={selectedPhoto}
+              alt="Aperçu photo"
+              style={{ maxWidth: '94vw', maxHeight: '94vh', width: 'auto', height: 'auto', objectFit: 'contain', borderRadius: 20 }}
+            />
+            <a
+              href={selectedPhoto}
+              download
+              style={{
+                position: 'absolute',
+                bottom: 16,
+                right: 16,
+                background: 'rgba(255,255,255,0.95)',
+                color: '#111',
+                padding: '10px 14px',
+                borderRadius: 999,
+                textDecoration: 'none',
+                fontWeight: 700,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              }}
+            >
+              Télécharger
+            </a>
+            <button
+              type="button"
+              onClick={() => setSelectedPhoto(null)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                background: 'rgba(255,255,255,0.95)',
+                color: '#111',
+                border: 'none',
+                borderRadius: '50%',
+                width: 40,
+                height: 40,
+                cursor: 'pointer',
+                fontSize: 18,
+                fontWeight: 700,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </PageLayout>
   );
 }
