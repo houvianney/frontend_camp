@@ -122,6 +122,16 @@ export default function AdminUsers() {
     }
   }
 
+  async function reactiver(id: string) {
+    try {
+      await api.patch(`/users/${id}/reactiver`);
+      setMessage('Utilisateur réactivé.');
+      await charger();
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.message || 'La réactivation a échoué.');
+    }
+  }
+
   async function supprimer(id: string) {
     if (!window.confirm('Supprimer cet utilisateur ?')) return;
     try {
@@ -243,9 +253,13 @@ export default function AdminUsers() {
                 <td>{user.actif ? 'Actif' : 'Désactivé'}</td>
                 <td>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {user.actif && (
+                    {user.actif ? (
                       <button className="btn btn-danger" onClick={() => desactiver(user.id)}>
                         Désactiver
+                      </button>
+                    ) : (
+                      <button className="btn btn-primary" onClick={() => reactiver(user.id)}>
+                        Réactiver
                       </button>
                     )}
                     <button className="btn btn-danger" onClick={() => supprimer(user.id)} title="Supprimer">
