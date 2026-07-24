@@ -49,6 +49,8 @@ export default function ParticipantEspace() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [erreur, setErreur] = useState('');
+  const [visibleAlbums, setVisibleAlbums] = useState<Record<string, number>>({});
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!badgeToken) return;
@@ -58,8 +60,14 @@ export default function ParticipantEspace() {
       .catch(() => setErreur('Badge introuvable ou invalide. Contactez un responsable.'));
 
     api.get<ProgrammeItem[]>('/programme').then((res) => setProgramme(res.data));
-    api.get<Album[]>('/albums').then((res) => setAlbums(res.data));
+    api.get<{ albums: Album[]; total: number; page: number; limit: number }>('/albums').then((res) => setAlbums(res.data.albums || []));
   }, [badgeToken]);
+
+  const loadMorePhotos = (albumId: string, total: number) => {
+    setLoadingMore(true);
+    setVisibleAlbums((prev) => ({ ...prev, [albumId]: Math.min(total, (prev[albumId] || 12) + 12) }));
+    window.setTimeout(() => setLoadingMore(false), 200);
+  };
 
   if (erreur) {
     return (
@@ -145,22 +153,29 @@ export default function ParticipantEspace() {
               <h3>{album.titre}</h3>
               <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
-                {album.photos.map((photo) => (
-                  <button
-                    key={photo.id}
-                    type="button"
-                    onClick={() => setSelectedPhoto(getPublicAssetUrl(photo.url))}
-                    style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
-                  >
-                    <img
-                      src={getPublicAssetUrl(photo.url)}
-                      alt={album.titre}
-                      className="responsive"
-                      style={{ borderRadius: 18, width: '100%', height: 120, objectFit: 'cover' }}
-                    />
-                  </button>
-                ))}
+                {(album.photos || [])
+                  .slice(0, visibleAlbums[album.id] || 12)
+                  .map((photo) => (
+                    <button
+                      key={photo.id}
+                      type="button"
+                      onClick={() => setSelectedPhoto(getPublicAssetUrl(photo.url))}
+                      style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
+                    >
+                      <img
+                        src={getPublicAssetUrl(photo.url)}
+                        alt={album.titre}
+                        className="responsive"
+                        style={{ borderRadius: 18, width: '100%', height: 120, objectFit: 'cover' }}
+                      />
+                    </button>
+                  ))}
               </div>
+              {album.photos.length > (visibleAlbums[album.id] || 12) && (
+                <button className="btn btn-secondary" style={{ marginTop: 12 }} onClick={() => loadMorePhotos(album.id, album.photos.length)} disabled={loadingMore}>
+                  {loadingMore ? 'Chargement...' : 'Charger plus de photos'}
+                </button>
+              )}
             </div>
           ))
         )}

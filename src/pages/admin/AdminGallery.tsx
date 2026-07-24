@@ -25,8 +25,8 @@ export default function AdminGallery() {
   const [message, setMessage] = useState('');
 
   async function charger() {
-    const { data } = await api.get<Album[]>('/albums');
-    setAlbums(data);
+    const { data } = await api.get<{ albums: Album[]; total: number; page: number; limit: number }>('/albums');
+    setAlbums(data.albums || []);
   }
 
   useEffect(() => {
