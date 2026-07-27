@@ -192,21 +192,28 @@ export default function AdminParticipantsValidated() {
           else if (typeLower.includes('volont')) accent = '#f97316';
 
           return `
-            <div class="badge-card" style="border: 4px solid ${accent}; background: white; border-radius: 20px; padding: 18px; box-sizing: border-box;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <img src="/icon_iyf.png" alt="logo" style="width:42px;height:42px;object-fit:contain;" />
+            <div class="badge-card" style="width:75mm; height:110mm; border: 4px solid ${accent}; background: white; border-radius: 12px; padding: 10px; box-sizing: border-box; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <img src="/icon_iyf.png" alt="logo" style="width:28px;height:28px;object-fit:contain;" />
+                  <div style="font-weight:700;color:${accent};font-size:0.85rem;">16e édition</div>
                 </div>
-                <div style="font-weight:700;color:${accent};">Badge anonyme</div>
+                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:6px;color:${accent};">Youth Leader Camp</div>
+                <div style="text-align:center;font-weight:700;font-size:0.85rem;margin-bottom:10px;color:${accent};">${typeValue}</div>
               </div>
-              <div style="text-align:center;font-weight:800;font-size:1.05rem;margin-bottom:6px;color:${accent};">Youth Leader Camp</div>
-              <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
-              <div style="text-align:center;font-size:1rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Code :</span> <strong>${item.code}</strong></div>
-              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;line-height:1.5;"><span style="color:#475569;">Nom :</span><br />&nbsp;</div>
-              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;line-height:1.5;"><span style="color:#475569;">Prénom :</span><br />&nbsp;</div>
-              <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;line-height:1.5;"><span style="color:#475569;">Classe :</span><br />&nbsp;</div>
-              <div style="display:flex;justify-content:center;margin-top:6px;">
-                <img src="${item.qrDataUrl}" alt="QR code" style="width:180px;height:180px;object-fit:contain;" />
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#475569;line-height:1.2;margin-bottom:4px;">
+                  <span>Nom :</span><span style="color:#0f172a;font-weight:700;"></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#475569;line-height:1.2;margin-bottom:4px;">
+                  <span>Prénom :</span><span style="color:#0f172a;font-weight:700;"></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#475569;line-height:1.2;margin-bottom:6px;">
+                  <span>Classe :</span><span style="color:#0f172a;font-weight:700;"></span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:center;align-items:center;">
+                <img src="${item.qrDataUrl}" alt="QR code" style="width:48mm;height:48mm;max-width:100%;object-fit:contain;" />
               </div>
             </div>
           `;
@@ -218,10 +225,11 @@ export default function AdminParticipantsValidated() {
           <head>
             <title>Badges anonymes à imprimer</title>
             <style>
-              body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 24px; }
-              .badge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-              .badge-card { width: 100%; min-height: 320px; page-break-inside: avoid; }
-              @media print { body { background: white; padding: 0; } .badge-grid { gap: 12px; } }
+              @page { size: A4 portrait; margin: 0; }
+              body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 8mm; }
+              .badge-grid { width: 210mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8mm; justify-items: center; }
+              .badge-card { width: 75mm; height: 110mm; page-break-inside: avoid; break-inside: avoid; }
+              @media print { body { background: white; padding: 0; } .badge-grid { gap: 6mm; } }
             </style>
           </head>
           <body><div class="badge-grid">${cards}</div></body>
@@ -279,20 +287,22 @@ export default function AdminParticipantsValidated() {
           }
 
           return `
-            <div class="badge-card" style="border: 4px solid ${accent}; background: white; border-radius: 20px; padding: 18px; box-sizing: border-box;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <img src="/icon_iyf.png" alt="logo" style="width:42px;height:42px;object-fit:contain;" />
+            <div class="badge-card" style="width:75mm; height:110mm; border: 4px solid ${accent}; background: white; border-radius: 12px; padding: 10px; box-sizing: border-box; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <img src="/icon_iyf.png" alt="logo" style="width:28px;height:28px;object-fit:contain;" />
+                  <div style="font-weight:700;color:${accent};font-size:0.85rem;">16e édition</div>
                 </div>
-                <div style="font-weight:700;color:${accent};">16e édition</div>
+                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:10px;color:${accent};">Youth Leader Camp</div>
+                <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
               </div>
-              <div style="text-align:center;font-weight:800;font-size:1.05rem;margin-bottom:6px;color:${accent};">Youth Leader Camp</div>
-              <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
-              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Nom :</span> <strong>${nom}</strong></div>
-              <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>
-              <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;"><span style="color:#475569;">Classe :</span> <strong>${classe}</strong></div>
-              <div style="display:flex;justify-content:center;margin-top:6px;">
-                <img src="${item.qrDataUrl}" alt="QR code" style="width:180px;height:180px;object-fit:contain;" />
+              <div>
+                <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Nom :</span> <strong>${nom}</strong></div>
+                <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>
+                <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;"><span style="color:#475569;">Classe :</span> <strong>${classe}</strong></div>
+              </div>
+              <div style="display:flex;justify-content:center;align-items:center;">
+                <img src="${item.qrDataUrl}" alt="QR code" style="width:52mm;height:52mm;object-fit:contain;" />
               </div>
             </div>
           `;
@@ -304,11 +314,12 @@ export default function AdminParticipantsValidated() {
           <head>
             <title>Badges à imprimer</title>
             <style>
-              body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 24px; }
-              .badge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-              .badge-card { width: 100%; min-height: 320px; page-break-inside: avoid; }
-              .qr-image { width: 140px; height: 140px; object-fit: contain; display: block; }
-              @media print { body { background: white; padding: 0; } .badge-grid { gap: 12px; } }
+              @page { size: A4 portrait; margin: 0; }
+              body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; padding: 8mm; }
+              .badge-grid { width: 210mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8mm; justify-items: center; }
+              .badge-card { width: 75mm; height: 110mm; page-break-inside: avoid; break-inside: avoid; }
+              .qr-image { width: 52mm; height: 52mm; object-fit: contain; display: block; }
+              @media print { body { background: white; padding: 0; } .badge-grid { gap: 6mm; } }
             </style>
           </head>
           <body><div class="badge-grid">${cards}</div></body>

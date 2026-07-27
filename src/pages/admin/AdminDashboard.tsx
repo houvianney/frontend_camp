@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import PageLayout from '../../components/PageLayout';
@@ -43,12 +43,22 @@ interface RessourceParticipant {
   scannedAt?: string;
 }
 
+type ParticipantSortField = 'nom' | 'prenom' | 'sexe' | 'typeParticipant' | 'localite';
+
+interface SortState {
+  field: ParticipantSortField;
+  direction: 'asc' | 'desc';
+}
+
 export default function AdminDashboard() {
   const [localites, setLocalites] = useState<StatLocalite[]>([]);
   const [ressources, setRessources] = useState<StatRessource[]>([]);
   const [selectedRessource, setSelectedRessource] = useState<StatRessource | null>(null);
   const [participants, setParticipants] = useState<RessourceParticipant[]>([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [participantSortState, setParticipantSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
+  const [selectedLocaliteId, setSelectedLocaliteId] = useState('');
+  const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'stats' | 'resources'>('stats');
 
@@ -73,6 +83,9 @@ export default function AdminDashboard() {
     try {
       const { data } = await api.get<RessourceParticipant[]>(`/ressources/${ressource.id}/participants`);
       setParticipants(data);
+      setParticipantSortState({ field: 'nom', direction: 'asc' });
+      setSelectedLocaliteId('');
+      setSelectedType('');
     } catch (err) {
       console.error('Erreur chargement participants ressource', err);
       setParticipants([]);
@@ -80,6 +93,66 @@ export default function AdminDashboard() {
       setParticipantsLoading(false);
     }
   }
+
+  function handleParticipantSort(field: ParticipantSortField) {
+    setParticipantSortState((prev) => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  }
+
+  const localiteOptions = useMemo(() => {
+    return Array.from(
+      new Set(participants
+        .map((participant) => participant.localite?.nom)
+        .filter(Boolean) as string[]),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [participants]);
+
+  const typeOptions = useMemo(() => {
+    return Array.from(
+      new Set(participants
+        .map((participant) => participant.typeParticipant)
+        .filter(Boolean) as string[]),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [participants]);
+
+  const sortedParticipants = useMemo(() => {
+    let items = [...participants];
+
+    if (selectedLocaliteId) {
+      items = items.filter((participant) => participant.localite?.id === selectedLocaliteId);
+    }
+
+    if (selectedType) {
+      items = items.filter((participant) => participant.typeParticipant === selectedType);
+    }
+
+    return items.sort((a, b) => {
+      const getValue = (participant: RessourceParticipant) => {
+        switch (participantSortState.field) {
+          case 'nom':
+            return (participant.nom || '').toLowerCase();
+          case 'prenom':
+            return (participant.prenom || '').toLowerCase();
+          case 'sexe':
+            return (participant.sexe || '').toLowerCase();
+          case 'typeParticipant':
+            return (participant.typeParticipant || '').toLowerCase();
+          case 'localite':
+            return (participant.localite?.nom || '').toLowerCase();
+          default:
+            return '';
+        }
+      };
+
+      const left = getValue(a);
+      const right = getValue(b);
+      if (left < right) return participantSortState.direction === 'asc' ? -1 : 1;
+      if (left > right) return participantSortState.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [participants, participantSortState, selectedLocaliteId, selectedType]);
 
   return (
     <PageLayout
@@ -195,25 +268,73 @@ export default function AdminDashboard() {
           {participantsLoading ? (
             <p>Chargement des participants…</p>
           ) : (
-            <div className="table-wrapper">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Prénom</th>
-                    <th>Sexe</th>
-                    <th>Âge</th>
-                    <th>Type</th>
-                    <th>Type staff</th>
-                    <th>Localité</th>
-                    <th>Contact</th>
-                    <th>Téléphone</th>
-                    <th>Email</th>
-                    <th>Reçu le</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {participants.map((p) => (
+            <>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                <label className="field" style={{ minWidth: 180, margin: 0 }}>
+                  <span className="field-label">Localité</span>
+                  <select className="select" value={selectedLocaliteId} onChange={(e) => setSelectedLocaliteId(e.target.value)}>
+                    <option value="">Toutes les localités</option>
+                    {participants
+                      .map((p) => p.localite)
+                      .filter((l): l is RessourceParticipant['localite'] => Boolean(l))
+                      .filter((value, index, self) => self.findIndex((item) => item?.id === value?.id) === index)
+                      .sort((a, b) => (a?.nom || '').localeCompare(b?.nom || ''))
+                      .map((localite) => (
+                        <option key={localite?.id} value={localite?.id || ''}>
+                          {localite?.nom}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label className="field" style={{ minWidth: 180, margin: 0 }}>
+                  <span className="field-label">Type</span>
+                  <select className="select" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+                    <option value="">Tous les types</option>
+                    {typeOptions.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="table-wrapper">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>
+                        <button type="button" className="sortable-header" onClick={() => handleParticipantSort('nom')}>
+                          Nom {participantSortState.field === 'nom' ? (participantSortState.direction === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                      </th>
+                      <th>
+                        <button type="button" className="sortable-header" onClick={() => handleParticipantSort('prenom')}>
+                          Prénom {participantSortState.field === 'prenom' ? (participantSortState.direction === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                      </th>
+                      <th>
+                        <button type="button" className="sortable-header" onClick={() => handleParticipantSort('sexe')}>
+                          Sexe {participantSortState.field === 'sexe' ? (participantSortState.direction === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                      </th>
+                      <th>Âge</th>
+                      <th>
+                        <button type="button" className="sortable-header" onClick={() => handleParticipantSort('typeParticipant')}>
+                          Type {participantSortState.field === 'typeParticipant' ? (participantSortState.direction === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                      </th>
+                      <th>Type staff</th>
+                      <th>
+                        <button type="button" className="sortable-header" onClick={() => handleParticipantSort('localite')}>
+                          Localité {participantSortState.field === 'localite' ? (participantSortState.direction === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                      </th>
+                      <th>Contact</th>
+                      <th>Téléphone</th>
+                      <th>Email</th>
+                      <th>Reçu le</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedParticipants.map((p) => (
                     <tr key={p.id}>
                       <td>{p.nom}</td>
                       <td>{p.prenom}</td>
@@ -231,6 +352,7 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </>
           )}
         </section>
       )}
