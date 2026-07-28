@@ -11,6 +11,7 @@ interface Participant {
   profession?: string | null;
   adresse?: string | null;
   contact?: string | null;
+  source?: string | null;
   membreOng?: boolean | null;
   typeParticipant?: string | null;
   typeStaff?: string | null;
