@@ -28,6 +28,7 @@ export default function ResponsableInscription() {
   const [profession, setProfession] = useState('');
   const [adresse, setAdresse] = useState('');
   const [contact, setContact] = useState('');
+  const [source, setSource] = useState('');
   const [membreOng, setMembreOng] = useState(false);
   const [typeParticipant, setTypeParticipant] = useState('');
   const [typeStaff, setTypeStaff] = useState('');
@@ -69,6 +70,7 @@ export default function ResponsableInscription() {
     if (age && isNaN(Number(age))) newErrors.age = 'L\'âge doit être un nombre.';
     if (!sexe) newErrors.sexe = 'Le sexe est obligatoire.';
     if (typeParticipant === 'STAFF' && !typeStaff) newErrors.typeStaff = 'Le type de staff est obligatoire pour le staff.';
+    if (showExtendedFields && !source) newErrors.source = 'La source est obligatoire pour les participants et volontaires.';
     if (!contact.trim()) newErrors.contact = 'Le contact est obligatoire.';
     if (!montantInitial.trim()) newErrors.montantInitial = 'Le montant de la première tranche est obligatoire.';
     if (montantInitial && isNaN(Number(montantInitial))) newErrors.montantInitial = 'Le montant doit être un nombre.';
@@ -99,6 +101,7 @@ export default function ResponsableInscription() {
           profession: showExtendedFields ? profession.trim() || undefined : undefined,
           adresse: showExtendedFields ? adresse.trim() || undefined : undefined,
           contact: contact.trim(),
+          source: showExtendedFields ? source || undefined : undefined,
           membreOng: showExtendedFields ? membreOng : undefined,
           typeParticipant,
           typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
@@ -115,6 +118,7 @@ export default function ResponsableInscription() {
           profession: showExtendedFields ? profession.trim() || undefined : undefined,
           adresse: showExtendedFields ? adresse.trim() || undefined : undefined,
           contact: contact.trim(),
+          source: showExtendedFields ? source || undefined : undefined,
           membreOng: showExtendedFields ? membreOng : undefined,
           typeParticipant,
           typeStaff: typeParticipant === 'STAFF' ? typeStaff : undefined,
@@ -130,6 +134,7 @@ export default function ResponsableInscription() {
       setSexe('');
       setProfession('');
       setAdresse('');
+      setSource('');
       setContact('');
       setMembreOng(false);
       setTypeParticipant('');
@@ -161,6 +166,7 @@ export default function ResponsableInscription() {
     setMembreOng(Boolean(p.membreOng));
     setTypeParticipant(p.typeParticipant || '');
     setTypeStaff(p.typeStaff || '');
+    setSource(p.source || '');
     setMontantInitial(String(Number(p.montantPaye || 0)));
     setActiveView('inscription');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -333,32 +339,53 @@ export default function ResponsableInscription() {
                 </div>
 
                 {showExtendedFields && (
-                  <div className="form-row inline">
-                    <label>
-                      Âge *
-                      <input 
-                        className={`input ${errors.age ? 'input-error' : ''}`}
-                        type="number" 
-                        min="0" 
-                        value={age} 
-                        onChange={(e) => {
-                          setAge(e.target.value);
-                          if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
-                        }}
-                      />
-                      {errors.age && <div className="error-text">{errors.age}</div>}
-                    </label>
-
-                    <label>
-                      Profession
-                      <input 
-                        className="input"
-                        value={profession} 
-                        onChange={(e) => setProfession(e.target.value)}
-                      />
-                    </label>
-                  </div>
+                  <label>
+                    Comment avez-vous entendu parler de nous *
+                    <select
+                      className={`input ${errors.source ? 'input-error' : ''}`}
+                      value={source}
+                      onChange={(e) => {
+                        setSource(e.target.value);
+                        if (errors.source) setErrors(prev => ({ ...prev, source: '' }));
+                      }}
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="Facebook">Facebook</option>
+                      <option value="Tik Tok">Tik Tok</option>
+                      <option value="Instagram">Instagram</option>
+                      <option value="YouTube">YouTube</option>
+                      <option value="Whatsapp">Whatsapp</option>
+                      <option value="Bouche à l’oreille">Bouche à l’oreille</option>
+                    </select>
+                    {errors.source && <div className="error-text">{errors.source}</div>}
+                  </label>
                 )}
+
+                <div className="form-row inline">
+                  <label>
+                    Âge *
+                    <input
+                      className={`input ${errors.age ? 'input-error' : ''}`}
+                      type="number"
+                      min="0"
+                      value={age}
+                      onChange={(e) => {
+                        setAge(e.target.value);
+                        if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+                      }}
+                    />
+                    {errors.age && <div className="error-text">{errors.age}</div>}
+                  </label>
+
+                  <label>
+                    Profession
+                    <input 
+                      className="input"
+                      value={profession} 
+                      onChange={(e) => setProfession(e.target.value)}
+                    />
+                  </label>
+                </div>
 
                 {showExtendedFields && (
                   <div className="form-row inline">

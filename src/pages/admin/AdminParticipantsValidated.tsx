@@ -17,6 +17,7 @@ interface Participant {
   classe?: string | null;
   adresse?: string | null;
   contact?: string | null;
+  source?: string | null;
   telephone?: string | null;
   email?: string | null;
   membreOng?: boolean | null;
@@ -30,7 +31,7 @@ interface Participant {
   createdAt?: string;
 }
 
-type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'typeStaff' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt';
+type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'source' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'typeStaff' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt';
 
 interface SortState {
   field: SortField;
@@ -103,6 +104,7 @@ export default function AdminParticipantsValidated() {
   const [formContact, setFormContact] = useState('');
   const [formType, setFormType] = useState('PARTICIPANT');
   const [formTypeStaff, setFormTypeStaff] = useState('');
+  const [formSource, setFormSource] = useState('');
   const [formMontant, setFormMontant] = useState('0');
   const [formLocaliteId, setFormLocaliteId] = useState('');
 
@@ -125,6 +127,7 @@ export default function AdminParticipantsValidated() {
     setFormSexe(p.sexe || '');
     setFormProfession(p.profession || '');
     setFormContact(p.contact || '');
+    setFormSource(p.source || '');
     setFormType(p.typeParticipant || 'PARTICIPANT');
     setFormTypeStaff(p.typeStaff || '');
     setFormMontant(String(Number(p.montantPaye || 0)));
@@ -141,27 +144,37 @@ export default function AdminParticipantsValidated() {
       alert('Veuillez renseigner tous les champs obligatoires : Nom, Prénom, Sexe, Contact, Montant (1–20 000), Type et Localité.');
       return;
     }
+    if ((formType === 'PARTICIPANT' || formType === 'VOLONTAIRE') && !formSource.trim()) {
+      alert('Veuillez indiquer comment le participant a entendu parler de nous.');
+      return;
+    }
 
     try {
+      const payload = {
+        nom: formNom.trim(),
+        prenom: formPrenom.trim(),
+        age: Number(formAge) || undefined,
+        sexe: formSexe || undefined,
+        profession: formProfession || undefined,
+        contact: formContact.trim(),
+        source: formSource || undefined,
+        typeParticipant: formType,
+        typeStaff: formType === 'STAFF' ? formTypeStaff : undefined,
+        montantTotal: Number(formMontant) || 0,
+        montantPaye: Number(formMontant) || 0,
+        localiteId: formLocaliteId,
+      };
+
       if (editId) {
-        await api.patch(`/participants/${editId}`, {
-          nom: formNom.trim(), prenom: formPrenom.trim(), age: Number(formAge) || undefined,
-          sexe: formSexe || undefined, profession: formProfession || undefined,
-          contact: formContact.trim(), typeParticipant: formType, typeStaff: formType === 'STAFF' ? formTypeStaff : undefined,
-          montantPaye: Number(formMontant) || 0,
-        });
+        await api.patch(`/participants/${editId}`, payload);
       } else {
-        await api.post('/participants', {
-          nom: formNom.trim(), prenom: formPrenom.trim(), age: Number(formAge) || undefined,
-          sexe: formSexe || undefined, profession: formProfession || undefined,
-          contact: formContact.trim(), typeParticipant: formType, typeStaff: formType === 'STAFF' ? formTypeStaff : undefined,
-          montantTotal: Number(formMontant) || 0, montantPaye: Number(formMontant) || 0, localiteId: formLocaliteId,
-        });
+        await api.post('/participants', payload);
       }
+
       // reset form
       setEditId(null);
       setShowAddForm(false);
-      setFormNom(''); setFormPrenom(''); setFormAge(''); setFormSexe(''); setFormProfession(''); setFormContact(''); setFormType('PARTICIPANT'); setFormTypeStaff(''); setFormMontant('0'); setFormLocaliteId('');
+      setFormNom(''); setFormPrenom(''); setFormAge(''); setFormSexe(''); setFormProfession(''); setFormContact(''); setFormSource(''); setFormType('PARTICIPANT'); setFormTypeStaff(''); setFormMontant('0'); setFormLocaliteId('');
       await charger();
     } catch (err: any) {
       console.error(err);
@@ -355,7 +368,7 @@ export default function AdminParticipantsValidated() {
     if (!term) return valides;
 
     return valides.filter((participant) => {
-      const combined = `${participant.nom || ''} ${participant.prenom || ''} ${participant.contact || ''} ${participant.localite?.nom || ''}`.toLowerCase();
+      const combined = `${participant.nom || ''} ${participant.prenom || ''} ${participant.contact || ''} ${participant.localite?.nom || ''} ${participant.source || ''}`.toLowerCase();
       return combined.includes(term);
     });
   }, [valides, search]);
@@ -412,6 +425,10 @@ export default function AdminParticipantsValidated() {
         case 'contact':
           left = a.contact || '';
           right = b.contact || '';
+          break;
+        case 'source':
+          left = a.source?.toLowerCase() || '';
+          right = b.source?.toLowerCase() || '';
           break;
         case 'sexe':
           left = a.sexe || '';
@@ -578,6 +595,19 @@ export default function AdminParticipantsValidated() {
               </div>
               <div className="form-row inline">
                 <label>Contact * <input className="input" value={formContact} onChange={(e) => setFormContact(e.target.value)} /></label>
+                {(formType === 'PARTICIPANT' || formType === 'VOLONTAIRE') && (
+                  <label>Comment avez-vous entendu parler de nous *
+                    <select className="input" value={formSource} onChange={(e) => setFormSource(e.target.value)}>
+                      <option value="">Sélectionner</option>
+                      <option value="Facebook">Facebook</option>
+                      <option value="Tik Tok">Tik Tok</option>
+                      <option value="Instagram">Instagram</option>
+                      <option value="YouTube">YouTube</option>
+                      <option value="Whatsapp">Whatsapp</option>
+                      <option value="Bouche à l’oreille">Bouche à l’oreille</option>
+                    </select>
+                  </label>
+                )}
                 <label>Montant payé * <input className="input" type="number" min="1" max="20000" value={formMontant} onChange={(e) => setFormMontant(e.target.value)} /></label>
                 <label>Localité * <select className="input" value={formLocaliteId} onChange={(e) => setFormLocaliteId(e.target.value)}>
                   <option value="">Sélectionner</option>
@@ -601,6 +631,7 @@ export default function AdminParticipantsValidated() {
                   <th>Classe</th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('localite')}>Localité {sortState.field === 'localite' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('contact')}>Contact {sortState.field === 'contact' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
+                  <th><button type="button" className="sortable-header" onClick={() => handleSort('source')}>Source {sortState.field === 'source' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('sexe')}>Sexe {sortState.field === 'sexe' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('age')}>Âge {sortState.field === 'age' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('profession')}>Profession {sortState.field === 'profession' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
@@ -623,6 +654,7 @@ export default function AdminParticipantsValidated() {
                     </td>
                     <td>{formatValue(p.localite?.nom)}</td>
                     <td>{formatValue(p.contact)}</td>
+                    <td>{formatValue(p.source)}</td>
                     <td>{formatValue(p.sexe)}</td>
                     <td>{p.age ? `${p.age} ans` : '—'}</td>
                     <td>{formatValue(p.profession)}</td>
