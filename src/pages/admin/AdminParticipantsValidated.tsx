@@ -52,6 +52,8 @@ export default function AdminParticipantsValidated() {
   const [showAnonymousForm, setShowAnonymousForm] = useState(false);
   const [anonymousCounts, setAnonymousCounts] = useState({ enseignants: '30', staff: '20', participants: '10', volontaires: '0' });
   const [anonymousLoading, setAnonymousLoading] = useState(false);
+  const [message, setMessage] = useState<string>('');
+  const [anonymousLocaliteId, setAnonymousLocaliteId] = useState('');
 
   async function charger() {
     setLoading(true);
@@ -107,6 +109,9 @@ export default function AdminParticipantsValidated() {
   const [formSource, setFormSource] = useState('');
   const [formMontant, setFormMontant] = useState('0');
   const [formLocaliteId, setFormLocaliteId] = useState('');
+  const [complementOpen, setComplementOpen] = useState(false);
+  const [complementParticipant, setComplementParticipant] = useState<Participant | null>(null);
+  const [complementAmount, setComplementAmount] = useState('');
 
   async function supprimerParticipant(id: string) {
     if (!window.confirm('Supprimer ce participant ?')) return;
@@ -115,7 +120,7 @@ export default function AdminParticipantsValidated() {
       await charger();
     } catch (err: any) {
       console.error(err);
-      alert(err?.response?.data?.message || 'Erreur lors de la suppression');
+      setMessage(err?.response?.data?.message || 'Erreur lors de la suppression');
     }
   }
 
@@ -178,7 +183,7 @@ export default function AdminParticipantsValidated() {
       await charger();
     } catch (err: any) {
       console.error(err);
-      alert(err?.response?.data?.message || 'Erreur lors de l\'enregistrement');
+      setMessage(err?.response?.data?.message || 'Erreur lors de l\'enregistrement');
     }
   }
 
@@ -190,6 +195,7 @@ export default function AdminParticipantsValidated() {
         staff: Number(anonymousCounts.staff || 0),
         participants: Number(anonymousCounts.participants || 0),
         volontaires: Number(anonymousCounts.volontaires || 0),
+        localiteId: anonymousLocaliteId || undefined,
       };
       const { data } = await api.post('/badges/anonymes/generer', payload);
       const printWindow = window.open('', '_blank', 'width=1100,height=900');
@@ -252,10 +258,12 @@ export default function AdminParticipantsValidated() {
       printWindow.focus();
       setTimeout(() => printWindow.print(), 800);
       setShowAnonymousForm(false);
+      setAnonymousLocaliteId('');
+      setMessage('Badges anonymes générés avec succès.');
       await charger();
     } catch (err: any) {
       console.error(err);
-      alert(err?.response?.data?.message || 'Erreur lors de la génération des badges anonymes');
+      setMessage(err?.response?.data?.message || 'Erreur lors de la génération des badges anonymes');
     } finally {
       setAnonymousLoading(false);
     }
@@ -350,6 +358,56 @@ export default function AdminParticipantsValidated() {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  function printParticipantsList() {
+    const items = sortedParticipants; // respects filters and sorting
+    const rows = items.map((p, i) => `
+      <div class="row" style="display:flex; width:100%; font-size:12px; padding:4px 0; border-bottom:1px solid #eee; box-sizing:border-box;">
+        <div style="width:8%;">${i + 1}</div>
+        <div style="width:30%;">${p.nom || '—'}</div>
+        <div style="width:30%;">${p.prenom || '—'}</div>
+        <div style="width:16%;">${p.sexe || '—'}</div>
+        <div style="width:16%; text-align:right;">${Number(p.montantPaye||0)} FCFA</div>
+      </div>
+    `).join('');
+
+    const html = `
+      <html>
+        <head>
+          <title>Liste participants inscrits</title>
+          <style>
+            @page { size: A4 portrait; margin: 10mm; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .container { width: 190mm; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 8px; }
+            .table { width: 100%; border-collapse: collapse; }
+            .row { display:flex; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="table">
+              <div class="row" style="font-weight:700; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:6px;">
+                <div style="width:8%;">N°</div>
+                <div style="width:30%;">Nom</div>
+                <div style="width:30%;">Prénom</div>
+                <div style="width:16%;">Sexe</div>
+                <div style="width:16%; text-align:right;">Montant</div>
+              </div>
+              ${rows}
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const win = window.open('', '_blank', 'width=900,height=800');
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => win.print(), 600);
   }
 
   function formatValue(value: unknown) {
@@ -533,12 +591,17 @@ export default function AdminParticipantsValidated() {
             <button className="btn btn-success" onClick={imprimerBadges} disabled={!selectedPrint.length || loading}>
               Imprimer la sélection ({selectedPrint.length})
             </button>
+            <button className="btn" onClick={() => printParticipantsList()} disabled={loading}>
+              Imprimer la liste (A4)
+            </button>
             <button className="btn btn-primary" onClick={() => setShowAnonymousForm((v) => !v)}>
               Générer badges anonymes
             </button>
           </div>
         </div>
       </section>
+
+      {message && (() => { const isError = /(erreur|erreurs|dépasse|depasse|dépassé|depassement|refus|impossible)/i.test(message); return (<div style={{ margin: '8px 0', color: isError ? 'red' : '#064e3b' }} className="small-text">{message}</div>); })()}
 
       {showAnonymousForm && (
         <section className="card card-sm" style={{ marginBottom: 18 }}>
@@ -563,6 +626,13 @@ export default function AdminParticipantsValidated() {
               <label className="field" style={{ minWidth: 140, margin: 0 }}>
                 <span className="field-label">Volontaires</span>
                 <input className="input" type="number" min="0" value={anonymousCounts.volontaires} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, volontaires: e.target.value }))} />
+              </label>
+              <label className="field" style={{ minWidth: 200, margin: 0 }}>
+                <span className="field-label">Localité</span>
+                <select className="select" value={anonymousLocaliteId} onChange={(e) => setAnonymousLocaliteId(e.target.value)}>
+                  <option value="">Choisir (par défaut: première)</option>
+                  {localites.map((l) => (<option key={l.id} value={l.id}>{l.nom}</option>))}
+                </select>
               </label>
               <button className="btn btn-primary" onClick={genererBadgesAnonymes} disabled={anonymousLoading}>
                 {anonymousLoading ? 'Génération...' : 'Imprimer ces badges'}
@@ -668,9 +738,12 @@ export default function AdminParticipantsValidated() {
                         <button className="btn btn-success" onClick={() => regenerer(p.id)}>
                           Régénérer badge
                         </button>
-                        <button className="btn" onClick={() => commencerEdition(p)}>
+                                        <button className="btn" onClick={() => commencerEdition(p)}>
                           Modifier
                         </button>
+                                        <button className="btn btn-secondary" onClick={() => { setComplementParticipant(p); setComplementAmount(''); setComplementOpen(true); }}>
+                                          Complément
+                                        </button>
                         <button className="btn btn-danger" onClick={() => supprimerParticipant(p.id)}>
                           Supprimer
                         </button>
@@ -681,6 +754,39 @@ export default function AdminParticipantsValidated() {
               </tbody>
             </table>
           </div>
+                          {complementOpen && complementParticipant && (
+                            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div className="card" style={{ width: '100mm', padding: 12 }}>
+                                <h3 className="section-title">Complément pour {complementParticipant.prenom} {complementParticipant.nom}</h3>
+                                <div style={{ marginBottom: 8 }}>Montant déjà versé : <strong>{Number(complementParticipant.montantPaye || 0)} FCFA</strong></div>
+                                <label>
+                                  Ajouter (FCFA)
+                                  <input className="input" type="number" min="0" value={complementAmount} onChange={(e) => setComplementAmount(e.target.value)} />
+                                </label>
+                                <div style={{ color: 'red', marginTop: 8 }}>{message}</div>
+                                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                  <button className="btn btn-primary" onClick={async () => {
+                                    const montant = Number(complementAmount || 0);
+                                    if (!montant || montant <= 0) { setMessage('Entrez un montant supérieur à 0'); return; }
+                                    try {
+                                      await api.patch(`/participants/${complementParticipant.id}/montant`, { montantAjoute: montant });
+                                      setComplementOpen(false); setComplementParticipant(null); setMessage(''); await charger();
+                                    } catch (err: any) { setMessage(err?.response?.data?.message || 'Erreur'); }
+                                  }}>Ajouter</button>
+                                  <button className="btn" onClick={async () => {
+                                    const deja = Number(complementParticipant.montantPaye || 0);
+                                    const reste = 20000 - deja;
+                                    if (reste <= 0) { setMessage('Participant déjà soldé.'); return; }
+                                    try {
+                                      await api.patch(`/participants/${complementParticipant.id}/montant`, { montantAjoute: reste });
+                                      setComplementOpen(false); setComplementParticipant(null); setMessage(''); await charger();
+                                    } catch (err: any) { setMessage(err?.response?.data?.message || 'Erreur'); }
+                                  }}>Soldé (compléter à 20 000 FCFA)</button>
+                                  <button className="btn" onClick={() => { setComplementOpen(false); setComplementParticipant(null); setMessage(''); }}>Annuler</button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
         </section>
       )}
     </PageLayout>

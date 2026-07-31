@@ -181,6 +181,14 @@ export default function ResponsableInscription() {
       return;
     }
 
+    const participant = participants.find((p) => p.id === id);
+    const actuel = Number(participant?.montantPaye || 0);
+    if (actuel + montantAjoute > 20000) {
+      setMessage('Le montant total ne peut pas dépasser 20 000 FCFA.');
+      setMessageType('error');
+      return;
+    }
+
     try {
       await api.patch(`/participants/${id}/montant`, { montantAjoute });
       setMessage('Montant mis à jour.');
