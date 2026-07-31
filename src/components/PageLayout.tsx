@@ -20,25 +20,25 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
     {
       title: 'Gestion',
       items: [
-        { label: 'Tableau de bord', to: '/admin', description: 'Vue d’ensemble' },
+        { label: 'Tableau de bord', to: '/inscription/admin', description: 'Vue d’ensemble' },
         {
           label: 'Participants',
           description: 'Gérer les inscriptions',
           children: [
-            { label: 'Inscriptions en attente', to: '/admin/participants/attente', description: 'Valider et consulter' },
-            { label: 'Participants validés', to: '/admin/participants/valides', description: 'Imprimer badges' },
+            { label: 'Inscriptions en attente', to: '/inscription/admin/participants/attente', description: 'Valider et consulter' },
+            { label: 'Participants validés', to: '/inscription/admin/participants/valides', description: 'Imprimer badges' },
           ],
         },
-        { label: 'Localités', to: '/admin/localites', description: 'Suivi par territoire' },
-        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
+        { label: 'Localités', to: '/inscription/admin/localites', description: 'Suivi par territoire' },
+        { label: 'Paramètres', to: '/inscription/change-password', description: 'Changer mon mot de passe' },
       ],
     },
     {
       title: 'Contenu & accès',
       items: [
-        { label: 'Utilisateurs', to: '/admin/users', description: 'Comptes et rôles' },
-        { label: 'Ressources', to: '/admin/ressources', description: 'Objets de contrôle' },
-        { label: 'Galerie', to: '/admin/galerie', description: 'Photos et téléchargements' },
+        { label: 'Utilisateurs', to: '/inscription/admin/users', description: 'Comptes et rôles' },
+        { label: 'Ressources', to: '/inscription/admin/ressources', description: 'Objets de contrôle' },
+        { label: 'Galerie', to: '/inscription/admin/galerie', description: 'Photos et téléchargements' },
       ],
     },
   ],
@@ -46,17 +46,17 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
     {
       title: 'Gestion',
       items: [
-        { label: 'Tableau de bord', to: '/admin', description: 'Vue d’ensemble' },
+        { label: 'Tableau de bord', to: '/inscription/admin', description: 'Vue d’ensemble' },
         {
           label: 'Participants',
           description: 'Gérer les inscriptions',
           children: [
-            { label: 'Inscriptions en attente', to: '/admin/participants/attente', description: 'Valider et consulter' },
-            { label: 'Participants validés', to: '/admin/participants/valides', description: 'Imprimer badges' },
+            { label: 'Inscriptions en attente', to: '/inscription/admin/participants/attente', description: 'Valider et consulter' },
+            { label: 'Participants validés', to: '/inscription/admin/participants/valides', description: 'Imprimer badges' },
           ],
         },
-        { label: 'Localités', to: '/admin/localites', description: 'Suivi par territoire' },
-        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
+        { label: 'Localités', to: '/inscription/admin/localites', description: 'Suivi par territoire' },
+        { label: 'Paramètres', to: '/inscription/change-password', description: 'Changer mon mot de passe' },
       ],
     },
     {
@@ -72,8 +72,8 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
     {
       title: 'Espace responsable',
       items: [
-        { label: 'Mes inscriptions', to: '/responsable', description: 'Ajouter et suivre' },
-        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
+        { label: 'Mes inscriptions', to: '/inscription/responsable', description: 'Ajouter et suivre' },
+        { label: 'Paramètres', to: '/inscription/change-password', description: 'Changer mon mot de passe' },
       ],
     },
   ],
@@ -82,7 +82,7 @@ const menuByRole: Record<string, Array<{ title: string; items: MenuItem[] }>> = 
       title: 'Espace contrôleur',
       items: [
         { label: 'Scanner', to: '/controleur', description: 'Valider les passages' },
-        { label: 'Paramètres', to: '/change-password', description: 'Changer mon mot de passe' },
+        { label: 'Paramètres', to: '/inscription/change-password', description: 'Changer mon mot de passe' },
       ],
     },
   ],

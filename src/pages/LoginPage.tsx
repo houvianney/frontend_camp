@@ -16,7 +16,7 @@ export default function LoginPage() {
     try {
       const result = await login(email, password);
       if (result.requiresPasswordChange) {
-        navigate('/change-password', { state: { fromLogin: true } });
+        navigate('/inscription/change-password', { state: { fromLogin: true } });
         return;
       }
       navigate('/');

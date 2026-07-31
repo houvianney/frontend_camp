@@ -17,21 +17,21 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 
 function RequireRole({ role, children }: { role: string; children: JSX.Element }) {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.passwordMustChange) return <Navigate to="/change-password" replace />;
+  if (!user) return <Navigate to="/inscription/login" replace />;
+  if (user.passwordMustChange) return <Navigate to="/inscription/change-password" replace />;
   const allowedRoles = role === 'ADMIN' ? ['ADMIN', 'ADMIN_SECONDARY'] : [role];
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
+  if (!allowedRoles.includes(user.role)) return <Navigate to="/inscription/login" replace />;
   return children;
 }
 
 function Home() {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.passwordMustChange) return <Navigate to="/change-password" replace />;
-  if (user.role === 'ADMIN' || user.role === 'ADMIN_SECONDARY') return <Navigate to="/admin" replace />;
-  if (user.role === 'RESPONSABLE') return <Navigate to="/responsable" replace />;
+  if (!user) return <Navigate to="/inscription/login" replace />;
+  if (user.passwordMustChange) return <Navigate to="/inscription/change-password" replace />;
+  if (user.role === 'ADMIN' || user.role === 'ADMIN_SECONDARY') return <Navigate to="/inscription/admin" replace />;
+  if (user.role === 'RESPONSABLE') return <Navigate to="/inscription/responsable" replace />;
   if (user.role === 'CONTROLEUR') return <Navigate to="/controleur" replace />;
-  return <Navigate to="/login" replace />;
+  return <Navigate to="/inscription/login" replace />;
 }
 
 export default function App() {
@@ -39,13 +39,14 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/" element={<Home />} />
+          <Route path="/inscription" element={<Home />} />
+          <Route path="/inscription/login" element={<LoginPage />} />
+          <Route path="/inscription/change-password" element={<ChangePasswordPage />} />
 
           {/* Espace Admin */}
           <Route
-            path="/admin"
+            path="/inscription/admin"
             element={
               <RequireRole role="ADMIN">
                 <AdminDashboard />
@@ -53,7 +54,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/validation"
+            path="/inscription/admin/validation"
             element={
               <RequireRole role="ADMIN">
                 <AdminValidation />
@@ -61,7 +62,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/participants/attente"
+            path="/inscription/admin/participants/attente"
             element={
               <RequireRole role="ADMIN">
                 <AdminParticipantsPending />
@@ -69,7 +70,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/participants/valides"
+            path="/inscription/admin/participants/valides"
             element={
               <RequireRole role="ADMIN">
                 <AdminParticipantsValidated />
@@ -77,7 +78,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/localites"
+            path="/inscription/admin/localites"
             element={
               <RequireRole role="ADMIN">
                 <AdminLocalites />
@@ -85,7 +86,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/users"
+            path="/inscription/admin/users"
             element={
               <RequireRole role="ADMIN">
                 <AdminUsers />
@@ -93,7 +94,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/ressources"
+            path="/inscription/admin/ressources"
             element={
               <RequireRole role="ADMIN">
                 <AdminRessources />
@@ -101,7 +102,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/programme"
+            path="/inscription/admin/programme"
             element={
               <RequireRole role="ADMIN">
                 <AdminProgramme />
@@ -109,7 +110,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/galerie"
+            path="/inscription/admin/galerie"
             element={
               <RequireRole role="ADMIN">
                 <AdminGallery />
@@ -119,7 +120,7 @@ export default function App() {
 
           {/* Espace Responsable de localité */}
           <Route
-            path="/responsable"
+            path="/inscription/responsable"
             element={
               <RequireRole role="RESPONSABLE">
                 <ResponsableInscription />

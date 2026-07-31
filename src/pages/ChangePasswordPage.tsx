@@ -19,7 +19,7 @@ export default function ChangePasswordPage() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login', { replace: true });
+      navigate('/inscription/login', { replace: true });
     }
   }, [navigate, user]);
 
@@ -46,13 +46,16 @@ export default function ChangePasswordPage() {
       updateUser(nextUser);
       setMessage({ type: 'success', text: 'Mot de passe mis à jour avec succès.' });
       const cameFromLogin = Boolean((location.state as { fromLogin?: boolean } | null)?.fromLogin);
-      const targetRoute = user.role === 'CONTROLEUR' ? '/controleur' : user.role === 'RESPONSABLE' ? '/responsable' : user.role === 'ADMIN' || user.role === 'ADMIN_SECONDARY' ? '/admin' : '/';
+      const targetRoute =
+        user.role === 'CONTROLEUR'
+          ? '/controleur'
+          : user.role === 'RESPONSABLE'
+          ? '/inscription/responsable'
+          : user.role === 'ADMIN' || user.role === 'ADMIN_SECONDARY'
+          ? '/inscription/admin'
+          : '/inscription/login';
       window.setTimeout(() => {
-        if (cameFromLogin) {
-          navigate(targetRoute, { replace: true });
-        } else {
-          navigate(targetRoute, { replace: true });
-        }
+        navigate(targetRoute, { replace: true });
       }, 600);
     } catch (err: any) {
       setMessage({ type: 'error', text: err?.response?.data?.message || 'Impossible de changer le mot de passe.' });
