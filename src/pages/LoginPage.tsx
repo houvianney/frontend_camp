@@ -19,7 +19,7 @@ export default function LoginPage() {
         navigate('/inscription/change-password', { state: { fromLogin: true } });
         return;
       }
-      navigate('/');
+      navigate('/inscription');
     } catch {
       setError('Identifiants invalides');
     }
