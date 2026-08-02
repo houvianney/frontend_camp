@@ -105,7 +105,7 @@ export default function PageLayout({ title, children, actions }: PageLayoutProps
           <div className="brand-badge">EV</div>
           <div>
             <p className="small-text">{user ? user.role : 'Utilisateur'}</p>
-            <h6>Youth Leader Camp</h6>
+            <h6>Youth Leaders Camp</h6>
           </div>
         </div>
 
