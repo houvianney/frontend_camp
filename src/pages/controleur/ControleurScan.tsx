@@ -74,6 +74,7 @@ export default function ControleurScan() {
   const [scanning, setScanning] = useState(true);
   const [resultat, setResultat] = useState<LookupResult | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [invalidButtonId, setInvalidButtonId] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerStartedRef = useRef(false);
   const scanStartedAtRef = useRef<number | null>(null);
@@ -229,6 +230,7 @@ export default function ControleurScan() {
       console.log('[SCAN] Validation success', response.data);
       const actionLabel = getActionLabel(resultat.typeControle);
       setMessage({ type: 'success', text: `${actionLabel} validée ✅` });
+      setInvalidButtonId(null);
       setResultat({
         ...resultat,
         ressources: resultat.ressources.map((r) =>
@@ -238,6 +240,8 @@ export default function ControleurScan() {
     } catch (err: any) {
       console.error('[SCAN] Validation failed', err);
       setMessage({ type: 'error', text: err?.response?.data?.message || 'Déjà validé' });
+      setInvalidButtonId(ressourceId);
+      window.setTimeout(() => setInvalidButtonId(null), 2500);
     }
   }
 
@@ -297,24 +301,27 @@ export default function ControleurScan() {
             <p className="small-text">Aucune ressource à valider pour ce type de contrôle.</p>
           ) : (
             <div className="grid" style={{ marginTop: 18 }}>
-              {resultat.ressources.map((r) => (
-                <button
-                  key={r.id}
-                  disabled={r.dejaDistribue}
-                  onClick={() => valider(r.id)}
-                  className={r.dejaDistribue ? 'btn' : 'btn btn-primary'}
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  <div style={{ textAlign: 'left', width: '100%' }}>
-                    <div>{r.libelle}</div>
-                    {r.dejaDistribue ? (
-                      <div className="small-text">Déjà validé pour ce type de contrôle</div>
-                    ) : (
-                      <div className="small-text">À valider</div>
-                    )}
-                  </div>
-                </button>
-              ))}
+              {resultat.ressources.map((r) => {
+                const isInvalid = invalidButtonId === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    disabled={r.dejaDistribue}
+                    onClick={() => valider(r.id)}
+                    className={r.dejaDistribue ? 'btn' : `btn ${isInvalid ? 'btn-danger' : 'btn btn-primary'}`}
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <div style={{ textAlign: 'left', width: '100%' }}>
+                      <div>{r.libelle}</div>
+                      {r.dejaDistribue ? (
+                        <div className="small-text">Déjà validé pour ce type de contrôle</div>
+                      ) : (
+                        <div className="small-text">À valider</div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
 
