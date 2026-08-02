@@ -134,7 +134,7 @@ export default function AdminValidation() {
                   <img src="/icon_iyf.png" alt="logo" style="width:48px;height:48px;object-fit:contain;" />
                   <div style="font-weight:700;color:${accent};">16e édition</div>
                 </div>
-                <div style="text-align:center;font-size:1.3rem;font-weight:800;margin-bottom:8px;color:${accent};">Youth Leader Camp</div>
+                <div style="text-align:center;font-size:1.3rem;font-weight:800;margin-bottom:8px;color:${accent};">Youth Leaders Camp</div>
                 <div style="text-align:center;font-weight:700;margin-bottom:12px;color:${accent};">${typeValue}</div>
                 <div style="text-align:left;font-size:1.05rem;font-weight:700;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Nom :</span> <strong>${nom}</strong></div>
                 <div style="text-align:left;font-size:1.05rem;font-weight:700;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>

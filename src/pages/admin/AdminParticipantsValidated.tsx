@@ -217,7 +217,7 @@ export default function AdminParticipantsValidated() {
                   <img src="/icon_iyf.png" alt="logo" style="width:28px;height:28px;object-fit:contain;" />
                   <div style="font-weight:700;color:${accent};font-size:0.85rem;">16e édition</div>
                 </div>
-                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:6px;color:${accent};">Youth Leader Camp</div>
+                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:6px;color:${accent};">Youth Leaders Camp</div>
                 <div style="text-align:center;font-weight:700;font-size:0.85rem;margin-bottom:10px;color:${accent};">${typeValue}</div>
               </div>
               <div>
@@ -314,7 +314,7 @@ export default function AdminParticipantsValidated() {
                   <img src="/icon_iyf.png" alt="logo" style="width:28px;height:28px;object-fit:contain;" />
                   <div style="font-weight:700;color:${accent};font-size:0.85rem;">16e édition</div>
                 </div>
-                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:10px;color:${accent};">Youth Leader Camp</div>
+                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:10px;color:${accent};">Youth Leaders Camp</div>
                 <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
               </div>
               <div>

@@ -17,6 +17,7 @@ interface User {
   localite?: Localite;
   controleType?: string;
   actif: boolean;
+  passwordPlain?: string;
 }
 
 type RoleType = 'RESPONSABLE' | 'CONTROLEUR' | 'ADMIN_SECONDARY';
@@ -62,6 +63,7 @@ export default function AdminUsers() {
   const [controleType, setControleType] = useState<'PRESENCE' | 'TSHIRT' | 'NOURRITURE'>('PRESENCE');
   const [message, setMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
   async function charger() {
     const [localitesRes, usersRes] = await Promise.all([
@@ -239,6 +241,7 @@ export default function AdminUsers() {
               <th>Rôle</th>
               <th>Localité / Contrôle</th>
               <th>Email</th>
+              <th>Mot de passe</th>
               <th>Statut</th>
               <th>Action</th>
             </tr>
@@ -249,7 +252,16 @@ export default function AdminUsers() {
                 <td>{user.prenom} {user.nom}</td>
                 <td>{roleLabels[user.role] || user.role}</td>
                 <td>{user.role === 'RESPONSABLE' ? user.localite?.nom : user.controleType}</td>
-                <td>{user.email}</td>
+                <td>
+                  <button
+                    onClick={() => setRevealed((p) => ({ ...p, [user.id]: !p[user.id] }))}
+                    title={revealed[user.id] ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    style={{ background: 'transparent', border: 'none', padding: 0, color: '#0f172a', textDecoration: 'underline', cursor: 'pointer' }}
+                  >
+                    {user.email}
+                  </button>
+                </td>
+                <td>{revealed[user.id] ? (user.passwordPlain || '—') : '••••••••'}</td>
                 <td>{user.actif ? 'Actif' : 'Désactivé'}</td>
                 <td>
                   <div style={{ display: 'flex', gap: 8 }}>
