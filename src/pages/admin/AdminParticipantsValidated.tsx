@@ -47,6 +47,15 @@ export default function AdminParticipantsValidated() {
   const [selectedType, setSelectedType] = useState('');
   const [selectedMontant, setSelectedMontant] = useState('');
   const [search, setSearch] = useState('');
+  const [montantMin, setMontantMin] = useState('');
+  const [montantMax, setMontantMax] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  // applied filters (only updated when user clicks Apply)
+  const [appliedMontantMin, setAppliedMontantMin] = useState('');
+  const [appliedMontantMax, setAppliedMontantMax] = useState('');
+  const [appliedStartDate, setAppliedStartDate] = useState('');
+  const [appliedEndDate, setAppliedEndDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
   const [showAnonymousForm, setShowAnonymousForm] = useState(false);
@@ -442,6 +451,23 @@ export default function AdminParticipantsValidated() {
   const sortedParticipants = useMemo(() => {
     let items = [...filteredParticipants];
 
+    // filter by registration date range (applied filters)
+    if (appliedStartDate || appliedEndDate) {
+      items = items.filter((participant) => {
+        if (!participant.createdAt) return false;
+        const d = new Date(participant.createdAt);
+        if (appliedStartDate) {
+          const s = new Date(appliedStartDate + 'T00:00:00');
+          if (d < s) return false;
+        }
+        if (appliedEndDate) {
+          const e = new Date(appliedEndDate + 'T23:59:59');
+          if (d > e) return false;
+        }
+        return true;
+      });
+    }
+
     if (selectedLocaliteId) {
       const selectedLocalite = localites.find((localite) => localite.id === selectedLocaliteId);
       items = items.filter((participant) => {
@@ -459,8 +485,16 @@ export default function AdminParticipantsValidated() {
       items = items.filter((participant) => participant.typeParticipant === selectedType);
     }
 
+    // amount filters: exact or range
     if (selectedMontant) {
       items = items.filter((participant) => Number(participant.montantPaye || 0) === Number(selectedMontant));
+    } else {
+      if (appliedMontantMin) {
+        items = items.filter((participant) => Number(participant.montantPaye || 0) >= Number(appliedMontantMin));
+      }
+      if (appliedMontantMax) {
+        items = items.filter((participant) => Number(participant.montantPaye || 0) <= Number(appliedMontantMax));
+      }
     }
 
     items.sort((a, b) => {
@@ -535,7 +569,7 @@ export default function AdminParticipantsValidated() {
     });
 
     return items;
-  }, [valides, localites, selectedLocaliteId, selectedSexe, selectedType, selectedMontant, search, sortState]);
+  }, [valides, localites, selectedLocaliteId, selectedSexe, selectedType, selectedMontant, search, sortState, appliedMontantMin, appliedMontantMax, appliedStartDate, appliedEndDate]);
 
   return (
     <PageLayout title="Participants du camp">
@@ -576,6 +610,38 @@ export default function AdminParticipantsValidated() {
               ))}
             </select>
           </label>
+          <label className="field" style={{ minWidth: 140, margin: 0 }}>
+            <span className="field-label">Montant min</span>
+            <input className="input" type="number" min="0" value={montantMin} onChange={(e) => setMontantMin(e.target.value)} placeholder="0" />
+          </label>
+          <label className="field" style={{ minWidth: 140, margin: 0 }}>
+            <span className="field-label">Montant max</span>
+            <input className="input" type="number" min="0" value={montantMax} onChange={(e) => setMontantMax(e.target.value)} placeholder="0" />
+          </label>
+          <label className="field" style={{ minWidth: 180, margin: 0 }}>
+            <span className="field-label">Date début</span>
+            <input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          </label>
+          <label className="field" style={{ minWidth: 180, margin: 0 }}>
+            <span className="field-label">Date fin</span>
+            <input className="input" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          </label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="btn btn-primary" onClick={() => {
+              setAppliedMontantMin(montantMin);
+              setAppliedMontantMax(montantMax);
+              setAppliedStartDate(startDate);
+              setAppliedEndDate(endDate);
+            }}>
+              Appliquer
+            </button>
+            <button className="btn" onClick={() => {
+              setMontantMin(''); setMontantMax(''); setStartDate(''); setEndDate('');
+              setAppliedMontantMin(''); setAppliedMontantMax(''); setAppliedStartDate(''); setAppliedEndDate('');
+            }}>
+              Réinitialiser
+            </button>
+          </div>
           <label className="field" style={{ minWidth: 220, margin: 0 }}>
             <span className="field-label">Localité</span>
             <select className="select" value={selectedLocaliteId} onChange={(e) => setSelectedLocaliteId(e.target.value)}>
@@ -696,6 +762,7 @@ export default function AdminParticipantsValidated() {
               <thead>
                 <tr>
                   <th><input type="checkbox" checked={selectedPrint.length === valides.length && valides.length > 0} onChange={() => setSelectedPrint(valides.length ? valides.map((p) => p.id) : [])} /></th>
+                  <th>N°</th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('nom')}>Nom {sortState.field === 'nom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('prenom')}>Prénom {sortState.field === 'prenom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th>Classe</th>
@@ -714,9 +781,10 @@ export default function AdminParticipantsValidated() {
                 </tr>
               </thead>
               <tbody>
-                {sortedParticipants.map((p) => (
+                {sortedParticipants.map((p, i) => (
                   <tr key={p.id}>
                     <td><input type="checkbox" checked={selectedPrint.includes(p.id)} onChange={() => togglePrint(p.id)} /></td>
+                    <td>{i + 1}</td>
                     <td><strong>{formatValue(p.nom)}</strong></td>
                     <td>{formatValue(p.prenom)}</td>
                     <td>

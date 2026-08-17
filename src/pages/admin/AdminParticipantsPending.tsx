@@ -245,6 +245,7 @@ export default function AdminParticipantsPending() {
               <thead>
                 <tr>
                   <th><input type="checkbox" checked={selectedPending.length === attente.length && attente.length > 0} onChange={() => setSelectedPending(attente.length ? attente.map((p) => p.id) : [])} /></th>
+                  <th>N°</th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('nom')}>Nom {sortState.field === 'nom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('prenom')}>Prénom {sortState.field === 'prenom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('localite')}>Localité {sortState.field === 'localite' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
@@ -262,9 +263,10 @@ export default function AdminParticipantsPending() {
                 </tr>
               </thead>
               <tbody>
-                {sortedParticipants.map((p) => (
+                {sortedParticipants.map((p, i) => (
                   <tr key={p.id}>
                     <td><input type="checkbox" checked={selectedPending.includes(p.id)} onChange={() => togglePending(p.id)} /></td>
+                    <td>{i + 1}</td>
                     <td><strong>{formatValue(p.nom)}</strong></td>
                     <td>{formatValue(p.prenom)}</td>
                     <td>{formatValue(p.localite?.nom)}</td>

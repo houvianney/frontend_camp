@@ -194,6 +194,7 @@ export default function AdminValidation() {
               <thead>
                 <tr>
                   <th><input type="checkbox" checked={selectedPending.length === attente.length && attente.length > 0} onChange={() => setSelectedPending(attente.length ? attente.map((p) => p.id) : [])} /></th>
+                  <th>N°</th>
                   <th>Nom</th>
                   <th>Localité</th>
                   <th>Montant</th>
@@ -201,9 +202,10 @@ export default function AdminValidation() {
                 </tr>
               </thead>
               <tbody>
-                {attente.map((p) => (
+                {attente.map((p, i) => (
                   <tr key={p.id}>
                     <td><input type="checkbox" checked={selectedPending.includes(p.id)} onChange={() => togglePending(p.id)} /></td>
+                    <td>{i + 1}</td>
                     <td>{p.prenom} {p.nom}</td>
                     <td>{p.localite?.nom}</td>
                     <td>{p.montantPaye} / {p.montantTotal}</td>
@@ -234,6 +236,7 @@ export default function AdminValidation() {
             <thead>
               <tr>
                 <th><input type="checkbox" checked={selectedPrint.length === valides.length && valides.length > 0} onChange={() => setSelectedPrint(valides.length ? valides.map((p) => p.id) : [])} /></th>
+                <th>N°</th>
                 <th>Nom</th>
                 <th>Localité</th>
                 <th>Type</th>
@@ -241,9 +244,10 @@ export default function AdminValidation() {
               </tr>
             </thead>
             <tbody>
-              {valides.map((p) => (
+              {valides.map((p, i) => (
                 <tr key={p.id}>
                   <td><input type="checkbox" checked={selectedPrint.includes(p.id)} onChange={() => togglePrint(p.id)} /></td>
+                  <td>{i + 1}</td>
                   <td>{p.prenom} {p.nom}</td>
                   <td>{p.localite?.nom}</td>
                   <td>{p.typeParticipant ?? 'Participant'}</td>

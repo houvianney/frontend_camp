@@ -300,6 +300,7 @@ export default function AdminDashboard() {
                 <table className="table">
                   <thead>
                     <tr>
+                      <th>N°</th>
                       <th>
                         <button type="button" className="sortable-header" onClick={() => handleParticipantSort('nom')}>
                           Nom {participantSortState.field === 'nom' ? (participantSortState.direction === 'asc' ? '↑' : '↓') : ''}
@@ -334,8 +335,9 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedParticipants.map((p) => (
+                    {sortedParticipants.map((p, i) => (
                     <tr key={p.id}>
+                      <td>{i + 1}</td>
                       <td>{p.nom}</td>
                       <td>{p.prenom}</td>
                       <td>{p.sexe || '—'}</td>

@@ -7,6 +7,7 @@ interface Ressource {
   code: string;
   libelle: string;
   type: string;
+  visible?: boolean;
 }
 
 export default function AdminRessources() {
@@ -14,6 +15,7 @@ export default function AdminRessources() {
   const [code, setCode] = useState('');
   const [libelle, setLibelle] = useState('');
   const [type, setType] = useState<'PRESENCE' | 'TSHIRT' | 'NOURRITURE'>('PRESENCE');
+  const [visible, setVisible] = useState(true);
   const [message, setMessage] = useState('');
 
   async function charger() {
@@ -27,10 +29,11 @@ export default function AdminRessources() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    await api.post('/ressources', { code, libelle, type });
+    await api.post('/ressources', { code, libelle, type, visible });
     setCode('');
     setLibelle('');
     setType('PRESENCE');
+    setVisible(true);
     setMessage('Ressource créée avec succès.');
     await charger();
   }
@@ -69,6 +72,9 @@ export default function AdminRessources() {
               <option value="NOURRITURE">Nourriture</option>
             </select>
           </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} /> Rendre visible
+          </label>
           <button className="btn btn-primary" type="submit">Créer la ressource</button>
         </form>
       </section>
@@ -81,6 +87,7 @@ export default function AdminRessources() {
               <th>Code</th>
               <th>Libellé</th>
               <th>Type</th>
+              <th>Visible</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -90,6 +97,20 @@ export default function AdminRessources() {
                 <td>{ressource.code}</td>
                 <td>{ressource.libelle}</td>
                 <td>{ressource.type}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={!!ressource.visible}
+                    onChange={async () => {
+                      try {
+                        await api.patch(`/ressources/${ressource.id}`, { visible: !ressource.visible });
+                        await charger();
+                      } catch (err: any) {
+                        setMessage('Impossible de mettre à jour la visibilité.');
+                      }
+                    }}
+                  />
+                </td>
                 <td>
                   <button className="btn btn-danger" onClick={() => supprimer(ressource.id)} title="Supprimer">
                     🗑️
