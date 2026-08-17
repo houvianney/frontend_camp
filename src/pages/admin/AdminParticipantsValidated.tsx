@@ -26,6 +26,7 @@ interface Participant {
   montantTotal?: number | string | null;
   montantPaye?: number | string | null;
   statut?: 'EN_ATTENTE' | 'VALIDE';
+  anonymousNumber?: number | null;
   localite?: { id?: string; nom?: string } | null;
   inscritPar?: { nom?: string; prenom?: string; role?: string } | null;
   createdAt?: string;
@@ -240,8 +241,9 @@ export default function AdminParticipantsValidated() {
                   <span>Classe :</span><span style="color:#0f172a;font-weight:700;"></span>
                 </div>
               </div>
-              <div style="display:flex;justify-content:center;align-items:center;">
+              <div style="display:flex;justify-content:center;align-items:center;flex-direction:column;">
                 <img src="${item.qrDataUrl}" alt="QR code" style="width:48mm;height:48mm;max-width:100%;object-fit:contain;" />
+                <div style="font-size:8px;color:#334155;margin-top:4px;">${String(item.anonymousNumber || '').padStart(4, '0')}</div>
               </div>
             </div>
           `;
@@ -331,8 +333,9 @@ export default function AdminParticipantsValidated() {
                 <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>
                 <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;"><span style="color:#475569;">Classe :</span> <strong>${classe}</strong></div>
               </div>
-              <div style="display:flex;justify-content:center;align-items:center;">
+                <div style="display:flex;justify-content:center;align-items:center;flex-direction:column;">
                 <img src="${item.qrDataUrl}" alt="QR code" style="width:52mm;height:52mm;object-fit:contain;" />
+                <div style="font-size:9px;color:#334155;margin-top:4px;">${String(((p as any).anonymousNumber) || '').padStart(4, '0')}</div>
               </div>
             </div>
           `;
@@ -763,6 +766,7 @@ export default function AdminParticipantsValidated() {
                 <tr>
                   <th><input type="checkbox" checked={selectedPrint.length === valides.length && valides.length > 0} onChange={() => setSelectedPrint(valides.length ? valides.map((p) => p.id) : [])} /></th>
                   <th>N°</th>
+                  <th>Code</th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('nom')}>Nom {sortState.field === 'nom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th><button type="button" className="sortable-header" onClick={() => handleSort('prenom')}>Prénom {sortState.field === 'prenom' ? (sortState.direction === 'asc' ? '↑' : '↓') : ''}</button></th>
                   <th>Classe</th>
@@ -785,6 +789,7 @@ export default function AdminParticipantsValidated() {
                   <tr key={p.id}>
                     <td><input type="checkbox" checked={selectedPrint.includes(p.id)} onChange={() => togglePrint(p.id)} /></td>
                     <td>{i + 1}</td>
+                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{p.anonymousNumber ? String(p.anonymousNumber).padStart(4, '0') : '—'}</td>
                     <td><strong>{formatValue(p.nom)}</strong></td>
                     <td>{formatValue(p.prenom)}</td>
                     <td>
