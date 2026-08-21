@@ -140,7 +140,7 @@ export default function App() {
           />
 
           {/* Espace Participant (public via lien/QR, pas de rôle back-end strict) */}
-          <Route path="/participant/:badgeToken" element={<ParticipantEspace />} />
+          {/* <Route path="/participant/:badgeToken" element={<ParticipantEspace />} /> */}
         </Routes>
       </BrowserRouter>
     </AuthProvider>
