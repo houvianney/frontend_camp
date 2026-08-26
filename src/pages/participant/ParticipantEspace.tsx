@@ -116,7 +116,7 @@ export default function ParticipantEspace() {
 
   return (
     <PageLayout title={`Bienvenue, ${info.prenom} ${info.nom}`}>
-      <section className="card">
+      {/* <section className="card">
         <p style={{ marginBottom: 8 }}>
           <strong>{info.prenom} {info.nom}</strong>
         </p>
@@ -130,9 +130,9 @@ export default function ParticipantEspace() {
         <p className="small-text">
           Vous pouvez faire défiler les photos de l’événement ci-dessous.
         </p>
-      </section>
+      </section> */}
 
-      <section className="card">
+      {/* <section className="card">
         <h2 className="section-title">Ressources déjà reçues</h2>
         {info.ressourcesRecues.length === 0 ? (
           <p>Rien reçu pour le moment.</p>
@@ -145,7 +145,7 @@ export default function ParticipantEspace() {
             ))}
           </ul>
         )}
-      </section>
+      </section> */}
 
       {/* <section className="card">
         <h2 className="section-title">Programme</h2>
@@ -238,7 +238,7 @@ export default function ParticipantEspace() {
                 onClick={(event) => { if (!isAvailable) event.preventDefault(); }}
               >
                 <span className="gallery-day-card-glow" aria-hidden="true" />
-                {isRecent && <span className="gallery-day-card-badge">✦ Nouveau</span>}
+                {isRecent && <span className="gallery-day-card-badge">Nouveau</span>}
                 <div className="gallery-day-card-top">
                   <div className="gallery-day-card-icon" aria-hidden="true">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
