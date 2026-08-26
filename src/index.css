@@ -340,114 +340,125 @@ button {
 }
 
 .gallery-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.gallery-section .section-title,
-.gallery-section .gallery-intro {
-  color: #fff;
+  margin-bottom: 28px;
 }
 
 .gallery-eyebrow {
-  margin: 0 0 6px;
-  color: #7dd3fc;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-family: 'Fraunces', serif;
+  font-size: 13px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.gallery-mark {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  color: #7dd3fc;
-  font-size: 1.45rem;
+  color: #C9A24B;
+  margin-bottom: 6px;
 }
 
 .gallery-intro {
-  max-width: 560px;
-  margin: 0 0 24px;
-  color: #d9edf7 !important;
+  margin-top: 6px;
+  opacity: 0.75;
 }
 
-.gallery-links {
+.gallery-days-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
 }
 
-.gallery-link-row {
+.gallery-day-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  justify-content: space-between;
+  min-height: 148px;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #0B1E3D 0%, #14294F 100%);
+  border: 1px solid rgba(201, 162, 75, 0.25);
+  text-decoration: none;
+  color: #F5F0E6;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.gallery-day-button {
+.gallery-day-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(201, 162, 75, 0.6);
+  box-shadow: 0 12px 28px rgba(11, 30, 61, 0.35);
+  text-decoration: none;
+}
+
+.gallery-day-card-glow {
+  position: absolute;
+  top: -40%;
+  right: -30%;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(201, 162, 75, 0.35) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.gallery-day-card-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.gallery-day-card-index {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.gallery-day-card-number {
+  font-family: 'Fraunces', serif;
+  font-size: 40px;
+  font-weight: 600;
+  color: #C9A24B;
+  line-height: 1;
+}
+
+.gallery-day-card-bottom {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 72px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  text-decoration: none;
-  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
 }
 
-.gallery-day-button:hover {
-  transform: translateY(-2px);
-  border-color: #7dd3fc;
-  background: rgba(255, 255, 255, 0.2);
-  text-decoration: none;
+.gallery-day-card-status {
+  font-size: 13px;
+  opacity: 0.85;
 }
 
-.gallery-day-button-disabled {
-  cursor: not-allowed;
-  opacity: 0.62;
+.gallery-day-card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(201, 162, 75, 0.15);
+  color: #C9A24B;
+  transition: background 0.25s ease, transform 0.25s ease;
 }
 
-.gallery-day-button-disabled:hover {
-  transform: none;
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.1);
+.gallery-day-card:hover .gallery-day-card-cta {
+  background: #C9A24B;
+  color: #0B1E3D;
+  transform: rotate(45deg);
 }
 
-.gallery-day-number {
-  color: #7dd3fc;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.gallery-day-card-disabled {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
-.gallery-day-label {
-  flex: 1;
-  font-size: 1rem;
-  font-weight: 750;
-}
-
-.gallery-day-arrow {
-  font-size: 1.25rem;
-}
-
-.gallery-drive-link {
-  padding-left: 14px;
-  color: #d9edf7;
-  font-size: 0.78rem;
-}
-
-@media (max-width: 640px) {
-  .gallery-links {
-    grid-template-columns: 1fr;
-  }
+.gallery-day-card-disabled .gallery-day-card-status {
+  font-style: italic;
 }
 
 .pill {

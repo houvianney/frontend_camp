@@ -205,55 +205,46 @@ export default function ParticipantEspace() {
         )}
       </section> */}
 
-      {/* ============================================================
-    GALERIE SOUVENIRS (Drive)
-    ============================================================ */}
-<section className="card gallery-section">
-  <div className="gallery-heading">
-    <div>
-      <p className="gallery-eyebrow">📸 Souvenirs de l’événement</p>
-      <h2 className="section-title">Galerie des 4 jours</h2>
-    </div>
-    <span className="gallery-mark" aria-hidden="true">✦</span>
-  </div>
-
-  <p className="small-text gallery-intro">
-    Chaque journée a sa propre galerie. Cliquez sur un jour pour accéder
-    aux photos et revivre les meilleurs moments.
-  </p>
-
-  <div className="gallery-grid">
-    {galeriesDrive.map(({ jour, url }) => {
-      const isAvailable = Boolean(url);
-      return (
-        <a
-          key={jour}
-          href={isAvailable ? url : undefined}
-          target={isAvailable ? "_blank" : undefined}
-          rel={isAvailable ? "noopener noreferrer" : undefined}
-          className={`gallery-card ${!isAvailable ? "gallery-card--disabled" : ""}`}
-          aria-disabled={!isAvailable}
-          onClick={(e) => !isAvailable && e.preventDefault()}
-          role="button"
-          tabIndex={0}
-        >
-          <div className="gallery-card__icon" aria-hidden="true">
-            {String(jour).padStart(2, "0")}
+      <section className="card gallery-section">
+        <div className="gallery-heading">
+          <div>
+            <p className="gallery-eyebrow">Souvenirs de l’événement</p>
+            <h2 className="section-title">Galerie photos</h2>
+            <p className="small-text gallery-intro">
+              Chaque journée a son album complet. Cliquez sur un jour pour parcourir les photos.
+            </p>
           </div>
-          <div className="gallery-card__content">
-            <span className="gallery-card__day">Jour {jour}</span>
-            <span className="gallery-card__label">
-              {isAvailable ? "Voir la galerie →" : "Bientôt disponible"}
-            </span>
-          </div>
-          {isAvailable && (
-            <span className="gallery-card__badge">📁 Drive</span>
-          )}
-        </a>
-      );
-    })}
-  </div>
-</section>
+        </div>
+        <div className="gallery-days-grid">
+          {galeriesDrive.map(({ jour, url }) => (
+            <a
+              key={jour}
+              className={`gallery-day-card${url ? '' : ' gallery-day-card-disabled'}`}
+              href={url || undefined}
+              target={url ? '_blank' : undefined}
+              rel={url ? 'noopener noreferrer' : undefined}
+              aria-disabled={!url}
+              onClick={(event) => { if (!url) event.preventDefault(); }}
+            >
+              <span className="gallery-day-card-glow" aria-hidden="true" />
+              <div className="gallery-day-card-top">
+                <span className="gallery-day-card-index">Jour</span>
+                <span className="gallery-day-card-number">{jour}</span>
+              </div>
+              <div className="gallery-day-card-bottom">
+                <span className="gallery-day-card-status">
+                  {url ? 'Album disponible' : 'Bientôt disponible'}
+                </span>
+                <span className="gallery-day-card-cta" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
 
       {selectedPhoto && (
         <div className="gallery-modal" onClick={() => setSelectedPhoto(null)}>
