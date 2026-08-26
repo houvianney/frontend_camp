@@ -205,44 +205,68 @@ export default function ParticipantEspace() {
         )}
       </section> */}
 
+      {/* ============================================================
+          GALERIE SOUVENIRS — VERSION ULTRA PRO
+          ============================================================ */}
       <section className="card gallery-section">
         <div className="gallery-heading">
           <div>
-            <p className="gallery-eyebrow">Souvenirs de l’événement</p>
-            <h2 className="section-title">Galerie photos</h2>
+            <p className="gallery-eyebrow">📸 Souvenirs de l’événement</p>
+            <h2 className="section-title">Galerie des 4 jours</h2>
             <p className="small-text gallery-intro">
               Chaque journée a son album complet. Cliquez sur un jour pour parcourir les photos.
             </p>
           </div>
+          <div className="gallery-heading-badge">
+            <span className="gallery-heading-badge-dot" />
+            {galeriesDrive.filter((gallery) => gallery.url).length} albums disponibles
+          </div>
         </div>
         <div className="gallery-days-grid">
-          {galeriesDrive.map(({ jour, url }) => (
-            <a
-              key={jour}
-              className={`gallery-day-card${url ? '' : ' gallery-day-card-disabled'}`}
-              href={url || undefined}
-              target={url ? '_blank' : undefined}
-              rel={url ? 'noopener noreferrer' : undefined}
-              aria-disabled={!url}
-              onClick={(event) => { if (!url) event.preventDefault(); }}
-            >
-              <span className="gallery-day-card-glow" aria-hidden="true" />
-              <div className="gallery-day-card-top">
-                <span className="gallery-day-card-index">Jour</span>
-                <span className="gallery-day-card-number">{jour}</span>
-              </div>
-              <div className="gallery-day-card-bottom">
-                <span className="gallery-day-card-status">
-                  {url ? 'Album disponible' : 'Bientôt disponible'}
-                </span>
-                <span className="gallery-day-card-cta" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-              </div>
-            </a>
-          ))}
+          {galeriesDrive.map(({ jour, url }) => {
+            const isAvailable = Boolean(url);
+            const isRecent = jour === 1 && isAvailable;
+
+            return (
+              <a
+                key={jour}
+                className={`gallery-day-card ${!isAvailable ? 'gallery-day-card-disabled' : ''} ${isRecent ? 'gallery-day-card-recent' : ''}`}
+                href={isAvailable ? url : undefined}
+                target={isAvailable ? '_blank' : undefined}
+                rel={isAvailable ? 'noopener noreferrer' : undefined}
+                aria-disabled={!isAvailable}
+                onClick={(event) => { if (!isAvailable) event.preventDefault(); }}
+              >
+                <span className="gallery-day-card-glow" aria-hidden="true" />
+                {isRecent && <span className="gallery-day-card-badge">✦ Nouveau</span>}
+                <div className="gallery-day-card-top">
+                  <div className="gallery-day-card-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="2" y="4" width="20" height="16" rx="3" />
+                      <circle cx="9" cy="11" r="3" />
+                      <path d="M15 8l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="gallery-day-card-header">
+                    <span className="gallery-day-card-index">Jour</span>
+                    <span className="gallery-day-card-number">{String(jour).padStart(2, '0')}</span>
+                  </div>
+                </div>
+                <div className="gallery-day-card-bottom">
+                  <div className="gallery-day-card-info">
+                    <span className="gallery-day-card-status">
+                      {isAvailable ? '📁 Album disponible' : '⏳ Bientôt disponible'}
+                    </span>
+                  </div>
+                  <span className="gallery-day-card-cta" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
 
