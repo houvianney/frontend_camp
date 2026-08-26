@@ -437,6 +437,7 @@ button {
   border-radius: 20px;
   padding: 1px;
   background: linear-gradient(135deg, rgba(201, 162, 75, 0.3), transparent 50%, rgba(201, 162, 75, 0.1));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
