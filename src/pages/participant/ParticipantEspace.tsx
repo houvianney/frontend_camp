@@ -165,7 +165,7 @@ export default function ParticipantEspace() {
         )}
       </section> */}
 
-      <section className="card">
+      {/* <section className="card">
         <h2 className="section-title">Galerie photos locale</h2>
         <p className="small-text" style={{ marginBottom: 14 }}>
           Consultez les photos hébergées directement sur notre plateforme.
@@ -203,41 +203,57 @@ export default function ParticipantEspace() {
             </div>
           ))
         )}
-      </section>
+      </section> */}
 
-      <section className="card gallery-section">
-        <div className="gallery-heading">
-          <div>
-            <p className="gallery-eyebrow">Souvenirs de l’événement</p>
-            <h2 className="section-title">Galerie photos</h2>
+      {/* ============================================================
+    GALERIE SOUVENIRS (Drive)
+    ============================================================ */}
+<section className="card gallery-section">
+  <div className="gallery-heading">
+    <div>
+      <p className="gallery-eyebrow">📸 Souvenirs de l’événement</p>
+      <h2 className="section-title">Galerie des 4 jours</h2>
+    </div>
+    <span className="gallery-mark" aria-hidden="true">✦</span>
+  </div>
+
+  <p className="small-text gallery-intro">
+    Chaque journée a sa propre galerie. Cliquez sur un jour pour accéder
+    aux photos et revivre les meilleurs moments.
+  </p>
+
+  <div className="gallery-grid">
+    {galeriesDrive.map(({ jour, url }) => {
+      const isAvailable = Boolean(url);
+      return (
+        <a
+          key={jour}
+          href={isAvailable ? url : undefined}
+          target={isAvailable ? "_blank" : undefined}
+          rel={isAvailable ? "noopener noreferrer" : undefined}
+          className={`gallery-card ${!isAvailable ? "gallery-card--disabled" : ""}`}
+          aria-disabled={!isAvailable}
+          onClick={(e) => !isAvailable && e.preventDefault()}
+          role="button"
+          tabIndex={0}
+        >
+          <div className="gallery-card__icon" aria-hidden="true">
+            {String(jour).padStart(2, "0")}
           </div>
-          <span className="gallery-mark" aria-hidden="true">↗</span>
-        </div>
-        <p className="small-text gallery-intro">
-          Retrouvez les photos de chaque journée dans nos albums Google Drive.
-        </p>
-        <div className="gallery-links">
-          {galeriesDrive.map(({ jour, url }) => (
-            <div className="gallery-link-row" key={jour}>
-              <a
-                className={`gallery-day-button${url ? '' : ' gallery-day-button-disabled'}`}
-                href={url || undefined}
-                target={url ? '_blank' : undefined}
-                rel={url ? 'noopener noreferrer' : undefined}
-                aria-disabled={!url}
-                onClick={(event) => { if (!url) event.preventDefault(); }}
-              >
-                <span className="gallery-day-number">0{jour}</span>
-                <span className="gallery-day-label">Galerie Jour {jour}</span>
-                <span className="gallery-day-arrow" aria-hidden="true">↗</span>
-              </a>
-              <span className="gallery-drive-link">
-                {url ? 'Ouvrir le dossier Google Drive' : 'Lien Drive bientôt disponible'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+          <div className="gallery-card__content">
+            <span className="gallery-card__day">Jour {jour}</span>
+            <span className="gallery-card__label">
+              {isAvailable ? "Voir la galerie →" : "Bientôt disponible"}
+            </span>
+          </div>
+          {isAvailable && (
+            <span className="gallery-card__badge">📁 Drive</span>
+          )}
+        </a>
+      );
+    })}
+  </div>
+</section>
 
       {selectedPhoto && (
         <div className="gallery-modal" onClick={() => setSelectedPhoto(null)}>
