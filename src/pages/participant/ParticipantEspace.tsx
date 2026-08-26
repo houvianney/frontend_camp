@@ -9,16 +9,6 @@ interface RessourceRecue {
   recuLe: string;
 }
 
-interface ProgrammeItem {
-  id: string;
-  jour: number;
-  heureDebut: string;
-  heureFin?: string;
-  titre: string;
-  lieu?: string;
-  description?: string;
-}
-
 interface PhotoItem {
   id: string;
   url: string;
@@ -42,10 +32,16 @@ interface BadgeInfo {
   ressourcesRecues: RessourceRecue[];
 }
 
+const galeriesDrive = [
+  { jour: 1, url: import.meta.env.VITE_DRIVE_GALERIE_JOUR_1 },
+  { jour: 2, url: import.meta.env.VITE_DRIVE_GALERIE_JOUR_2 },
+  { jour: 3, url: import.meta.env.VITE_DRIVE_GALERIE_JOUR_3 },
+  { jour: 4, url: import.meta.env.VITE_DRIVE_GALERIE_JOUR_4 },
+];
+
 export default function ParticipantEspace() {
   const { badgeToken } = useParams();
   const [info, setInfo] = useState<BadgeInfo | null>(null);
-  const [programme, setProgramme] = useState<ProgrammeItem[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [erreur, setErreur] = useState('');
@@ -60,7 +56,6 @@ export default function ParticipantEspace() {
       .then((res) => setInfo(res.data))
       .catch(() => setErreur('Badge introuvable ou invalide. Contactez un responsable.'));
 
-    api.get<ProgrammeItem[]>('/programme').then((res) => setProgramme(res.data));
     api.get<{ albums: Album[]; total: number; page: number; limit: number }>('/albums').then((res) => setAlbums(res.data.albums || []));
   }, [badgeToken]);
 
@@ -171,61 +166,34 @@ export default function ParticipantEspace() {
       </section> */}
 
       <section className="card">
-        <h2 className="section-title">Galerie photos</h2>
+        <h2 className="section-title">Galerie photos locale</h2>
         <p className="small-text" style={{ marginBottom: 14 }}>
-          Cliquez sur une image pour l’ouvrir en grand, puis téléchargez-la facilement depuis l’aperçu.
+          Consultez les photos hébergées directement sur notre plateforme.
         </p>
         {albums.length === 0 ? (
-          <p>Aucune galerie n’est encore disponible.</p>
+          <p>Aucune galerie locale n’est encore disponible.</p>
         ) : (
           albums.map((album) => (
             <div key={album.id} className="card" style={{ marginBottom: 18, padding: 14 }}>
               <h3>{album.titre}</h3>
               <p className="small-text">{album.activite ? `${album.activite} • ` : ''}{album.jour ? `Jour ${album.jour}` : 'Pas de jour défini'}</p>
               <div style={{ columnCount: 2, columnGap: 12 }}>
-                {(album.photos || [])
-                  .slice(0, visibleAlbums[album.id] || 12)
-                  .map((photo) => {
-                    const imageUrl = getPublicAssetUrl(photo.url);
-                    return (
-                      <div
-                        key={photo.id}
-                        style={{ breakInside: 'avoid', marginBottom: 12, position: 'relative', borderRadius: 18, overflow: 'hidden', background: '#f5f5f5' }}
-                        onMouseEnter={() => setHoveredPhoto(imageUrl)}
-                        onMouseLeave={() => setHoveredPhoto(null)}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPhoto(imageUrl)}
-                          style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', width: '100%' }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt={album.titre}
-                            style={{ width: '100%', display: 'block', objectFit: 'cover', minHeight: 120, maxHeight: 240 }}
-                          />
-                        </button>
-                        <div
-                          style={{
-                            position: 'absolute',
-                            inset: 0,
-                            background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
-                            display: 'flex',
-                            alignItems: 'flex-end',
-                            justifyContent: 'flex-end',
-                            padding: 10,
-                            opacity: hoveredPhoto === imageUrl ? 1 : 0,
-                            transition: 'opacity 0.2s ease',
-                            pointerEvents: 'none',
-                          }}
-                        >
-                          <span style={{ background: 'rgba(255,255,255,0.9)', padding: '7px 10px', borderRadius: 999, fontSize: 13, fontWeight: 700 }}>
-                            ⬇ Télécharger
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                {(album.photos || []).slice(0, visibleAlbums[album.id] || 12).map((photo) => {
+                  const imageUrl = getPublicAssetUrl(photo.url);
+                  return (
+                    <button
+                      type="button"
+                      key={photo.id}
+                      onClick={() => setSelectedPhoto(imageUrl)}
+                      className="gallery-local-photo"
+                      onMouseEnter={() => setHoveredPhoto(imageUrl)}
+                      onMouseLeave={() => setHoveredPhoto(null)}
+                    >
+                      <img src={imageUrl} alt={album.titre} />
+                      {hoveredPhoto === imageUrl && <span>↗ Ouvrir</span>}
+                    </button>
+                  );
+                })}
               </div>
               {album.photos.length > (visibleAlbums[album.id] || 12) && (
                 <button className="btn btn-secondary" style={{ marginTop: 12 }} onClick={() => loadMorePhotos(album.id, album.photos.length)} disabled={loadingMore}>
@@ -237,64 +205,48 @@ export default function ParticipantEspace() {
         )}
       </section>
 
+      <section className="card gallery-section">
+        <div className="gallery-heading">
+          <div>
+            <p className="gallery-eyebrow">Souvenirs de l’événement</p>
+            <h2 className="section-title">Galerie photos</h2>
+          </div>
+          <span className="gallery-mark" aria-hidden="true">↗</span>
+        </div>
+        <p className="small-text gallery-intro">
+          Retrouvez les photos de chaque journée dans nos albums Google Drive.
+        </p>
+        <div className="gallery-links">
+          {galeriesDrive.map(({ jour, url }) => (
+            <div className="gallery-link-row" key={jour}>
+              <a
+                className={`gallery-day-button${url ? '' : ' gallery-day-button-disabled'}`}
+                href={url || undefined}
+                target={url ? '_blank' : undefined}
+                rel={url ? 'noopener noreferrer' : undefined}
+                aria-disabled={!url}
+                onClick={(event) => { if (!url) event.preventDefault(); }}
+              >
+                <span className="gallery-day-number">0{jour}</span>
+                <span className="gallery-day-label">Galerie Jour {jour}</span>
+                <span className="gallery-day-arrow" aria-hidden="true">↗</span>
+              </a>
+              <span className="gallery-drive-link">
+                {url ? 'Ouvrir le dossier Google Drive' : 'Lien Drive bientôt disponible'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {selectedPhoto && (
-        <div
-          onClick={() => setSelectedPhoto(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-            padding: 20,
-          }}
-        >
-          <div style={{ position: 'relative', maxWidth: '94vw', maxHeight: '94vh' }} onClick={(e) => e.stopPropagation()}>
-            <img
-              src={selectedPhoto}
-              alt="Aperçu photo"
-              style={{ maxWidth: '94vw', maxHeight: '94vh', width: 'auto', height: 'auto', objectFit: 'contain', borderRadius: 20 }}
-            />
-            <button
-              type="button"
-              onClick={() => void handleDownloadPhoto(selectedPhoto)}
-              style={{
-                position: 'absolute',
-                bottom: 16,
-                right: 16,
-                background: 'rgba(255,255,255,0.95)',
-                color: '#111',
-                padding: '10px 14px',
-                borderRadius: 999,
-                border: 'none',
-                textDecoration: 'none',
-                fontWeight: 700,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                cursor: 'pointer',
-              }}
-            >
+        <div className="gallery-modal" onClick={() => setSelectedPhoto(null)}>
+          <div className="gallery-modal-content" onClick={(event) => event.stopPropagation()}>
+            <img src={selectedPhoto} alt="Aperçu photo" />
+            <button type="button" className="btn" onClick={() => void handleDownloadPhoto(selectedPhoto)}>
               Télécharger
             </button>
-            <button
-              type="button"
-              onClick={() => setSelectedPhoto(null)}
-              style={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                background: 'rgba(255,255,255,0.95)',
-                color: '#111',
-                border: 'none',
-                borderRadius: '50%',
-                width: 40,
-                height: 40,
-                cursor: 'pointer',
-                fontSize: 18,
-                fontWeight: 700,
-              }}
-            >
+            <button type="button" className="gallery-modal-close" onClick={() => setSelectedPhoto(null)} aria-label="Fermer">
               ✕
             </button>
           </div>
