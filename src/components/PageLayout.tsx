@@ -102,7 +102,9 @@ export default function PageLayout({ title, children, actions }: PageLayoutProps
     <div className="page-shell">
       <header className="topbar-card">
         <div className="topbar-brand">
-          <div className="brand-badge">EV</div>
+          <div className="brand-badge">
+            <img src="/icon_iyf.png" alt="Logo de l'organisation" className="brand-logo" />
+          </div>
           <div>
             <p className="small-text">{user ? user.role : 'Utilisateur'}</p>
             <h6>Youth Leaders Camp</h6>
