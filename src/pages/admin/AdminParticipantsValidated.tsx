@@ -379,7 +379,6 @@ export default function AdminParticipantsValidated() {
         <div style="width:8%;">${i + 1}</div>
         <div style="width:20%;">${p.nom || '—'}</div>
         <div style="width:20%;">${p.prenom || '—'}</div>
-        
         <div style="width:10%;">${p.sexe || '—'}</div>
         <div style="width:14%;">${p.typeParticipant || '—'}</div>
         <div style="width:12%; text-align:right;">${Number(p.montantPaye || 0)} FCFA</div>
@@ -408,7 +407,6 @@ export default function AdminParticipantsValidated() {
                 <div style="width:8%;">N°</div>
                 <div style="width:20%;">Nom</div>
                 <div style="width:20%;">Prénoms</div>
-                
                 <div style="width:10%;">Sexe</div>
                 <div style="width:14%;">Type</div>
                 <div style="width:12%; text-align:right;">Montant</div>
