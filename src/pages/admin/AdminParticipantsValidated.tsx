@@ -377,11 +377,13 @@ export default function AdminParticipantsValidated() {
     const rows = items.map((p, i) => `
       <div class="row" style="display:flex; width:100%; font-size:12px; padding:4px 0; border-bottom:1px solid #eee; box-sizing:border-box;">
         <div style="width:8%;">${i + 1}</div>
-        <div style="width:23%;">${p.nom || '—'}</div>
-        <div style="width:23%;">${p.prenom || '—'}</div>
-        <div style="width:14%;">${p.sexe || '—'}</div>
-        <div style="width:16%;">${p.typeParticipant || '—'}</div>
-        <div style="width:16%; text-align:right;">${Number(p.montantPaye||0)} FCFA</div>
+        <div style="width:20%;">${p.nom || '—'}</div>
+        <div style="width:20%;">${p.prenom || '—'}</div>
+        
+        <div style="width:10%;">${p.sexe || '—'}</div>
+        <div style="width:14%;">${p.typeParticipant || '—'}</div>
+        <div style="width:12%; text-align:right;">${Number(p.montantPaye || 0)} FCFA</div>
+        <div style="width:16%;">${p.localite?.nom || '—'}</div>
       </div>
     `).join('');
 
@@ -404,11 +406,13 @@ export default function AdminParticipantsValidated() {
             <div class="table">
               <div class="row" style="font-weight:700; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:6px;">
                 <div style="width:8%;">N°</div>
-                <div style="width:23%;">Nom</div>
-                <div style="width:23%;">Prénoms</div>
-                <div style="width:14%;">Sexe</div>
-                <div style="width:16%;">Type</div>
-                <div style="width:16%; text-align:right;">Montant</div>
+                <div style="width:20%;">Nom</div>
+                <div style="width:20%;">Prénoms</div>
+                
+                <div style="width:10%;">Sexe</div>
+                <div style="width:14%;">Type</div>
+                <div style="width:12%; text-align:right;">Montant</div>
+                <div style="width:16%;">Localité</div>
               </div>
               ${rows}
             </div>
