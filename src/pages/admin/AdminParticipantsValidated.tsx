@@ -32,6 +32,33 @@ interface Participant {
   createdAt?: string;
 }
 
+function getParticipantBadgeStyle(typeParticipant?: string | null, sexe?: string | null) {
+  const normalizedType = (typeParticipant || '').toLowerCase();
+  const normalizedSexe = (sexe || '').trim().toLowerCase();
+
+  if (normalizedType.includes('participant')) {
+    if (normalizedSexe === 'm' || normalizedSexe === 'masculin') {
+      return { border: '#2563eb', background: '#eff6ff', text: '#1d4ed8', label: 'Participant homme' };
+    }
+    if (normalizedSexe === 'f' || normalizedSexe === 'feminin' || normalizedSexe === 'féminin') {
+      return { border: '#dfe7f0', background: '#ffffff', text: '#111827', label: 'Participant femme' };
+    }
+    return { border: '#2563eb', background: '#eff6ff', text: '#1d4ed8', label: 'Participant' };
+  }
+
+  if (normalizedType.includes('enseignant')) {
+    return { border: '#22c55e', background: '#f0fdf4', text: '#166534', label: 'Enseignant' };
+  }
+  if (normalizedType.includes('staff')) {
+    return { border: '#8b5cf6', background: '#f5f3ff', text: '#5b21b6', label: 'Staff' };
+  }
+  if (normalizedType.includes('volont')) {
+    return { border: '#f59e0b', background: '#fff7ed', text: '#9a5b00', label: 'Volontaire' };
+  }
+
+  return { border: '#2563eb', background: '#ffffff', text: '#1f2937', label: typeParticipant || 'Participant' };
+}
+
 type SortField = 'nom' | 'prenom' | 'localite' | 'contact' | 'source' | 'sexe' | 'age' | 'profession' | 'typeParticipant' | 'typeStaff' | 'montantPaye' | 'montantTotal' | 'inscritPar' | 'createdAt';
 
 interface SortState {
@@ -60,7 +87,7 @@ export default function AdminParticipantsValidated() {
   const [loading, setLoading] = useState(false);
   const [sortState, setSortState] = useState<SortState>({ field: 'nom', direction: 'asc' });
   const [showAnonymousForm, setShowAnonymousForm] = useState(false);
-  const [anonymousCounts, setAnonymousCounts] = useState({ enseignants: '30', staff: '20', participants: '10', volontaires: '0' });
+  const [anonymousCounts, setAnonymousCounts] = useState({ enseignants: '30', staff: '20', participantsHomme: '10', participantsFemme: '0', volontaires: '0' });
   const [anonymousLoading, setAnonymousLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
   const [anonymousLocaliteId, setAnonymousLocaliteId] = useState('');
@@ -203,7 +230,8 @@ export default function AdminParticipantsValidated() {
       const payload = {
         enseignants: Number(anonymousCounts.enseignants || 0),
         staff: Number(anonymousCounts.staff || 0),
-        participants: Number(anonymousCounts.participants || 0),
+        participantsHomme: Number(anonymousCounts.participantsHomme || 0),
+        participantsFemme: Number(anonymousCounts.participantsFemme || 0),
         volontaires: Number(anonymousCounts.volontaires || 0),
         localiteId: anonymousLocaliteId || undefined,
       };
@@ -214,30 +242,26 @@ export default function AdminParticipantsValidated() {
       const cards = data
         .map((item: any) => {
           const typeValue = item.typeParticipant || 'Participant';
-          let accent = '#2563eb';
-          const typeLower = (typeValue || '').toLowerCase();
-          if (typeLower.includes('enseignant')) accent = '#16a34a';
-          else if (typeLower.includes('staff') || typeLower.includes('staffs')) accent = '#7c3aed';
-          else if (typeLower.includes('volont')) accent = '#f97316';
+          const style = getParticipantBadgeStyle(typeValue, item.sexe);
 
           return `
-            <div class="badge-card" style="width:75mm; height:110mm; border: 4px solid ${accent}; background: white; border-radius: 12px; padding: 10px; box-sizing: border-box; display:flex; flex-direction:column; justify-content:space-between;">
+            <div class="badge-card" style="width:75mm; height:110mm; border: 4px solid ${style.border}; background: ${style.background}; color: ${style.text}; border-radius: 12px; padding: 10px; box-sizing: border-box; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                   <img src="/icon_iyf.png" alt="logo" style="width:28px;height:28px;object-fit:contain;" />
-                  <div style="font-weight:700;color:${accent};font-size:0.85rem;">16e édition</div>
+                  <div style="font-weight:700;color:${style.text};font-size:0.85rem;">16e édition</div>
                 </div>
-                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:6px;color:${accent};">Youth Leaders Camp</div>
-                <div style="text-align:center;font-weight:700;font-size:0.85rem;margin-bottom:10px;color:${accent};">${typeValue}</div>
+                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:6px;color:${style.text};">Youth Leaders Camp</div>
+                <div style="text-align:center;font-weight:700;font-size:0.85rem;margin-bottom:10px;color:${style.text};">${typeValue}</div>
               </div>
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#475569;line-height:1.2;margin-bottom:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:${style.text};line-height:1.2;margin-bottom:4px;">
                   <span>Nom :</span><span style="color:#0f172a;font-weight:700;"></span>
                 </div>
-                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#475569;line-height:1.2;margin-bottom:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:${style.text};line-height:1.2;margin-bottom:4px;">
                   <span>Prénom :</span><span style="color:#0f172a;font-weight:700;"></span>
                 </div>
-                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#475569;line-height:1.2;margin-bottom:6px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.9rem;color:${style.text};line-height:1.2;margin-bottom:6px;">
                   <span>Classe :</span><span style="color:#0f172a;font-weight:700;"></span>
                 </div>
               </div>
@@ -305,33 +329,22 @@ export default function AdminParticipantsValidated() {
           const nom = p?.nom || '—';
           const prenom = p?.prenom || '—';
           const classe = p?.classe || '—';
-
-          // determine accent color
-          let accent = '#2563eb'; // default blue
-          const typeLower = (typeValue || '').toLowerCase();
-          const sexe = (p?.sexe || '').toLowerCase();
-          if (typeLower.includes('enseignant')) accent = '#16a34a';
-          else if (typeLower.includes('staff') || typeLower.includes('staffs')) accent = '#7c3aed';
-          else if (typeLower.includes('volont') || typeLower.includes('volunteer') || typeLower.includes('volontaire')) accent = '#f97316';
-          else {
-            if (sexe === 'masculin' || sexe === 'm') accent = '#2563eb';
-            if (sexe === 'feminin' || sexe === 'féminin' || sexe === 'f') accent = '#ec4899';
-          }
+          const style = getParticipantBadgeStyle(typeValue, p?.sexe);
 
           return `
-            <div class="badge-card" style="width:75mm; height:110mm; border: 4px solid ${accent}; background: white; border-radius: 12px; padding: 10px; box-sizing: border-box; display:flex; flex-direction:column; justify-content:space-between;">
+            <div class="badge-card" style="width:75mm; height:110mm; border: 4px solid ${style.border}; background: ${style.background}; color: ${style.text}; border-radius: 12px; padding: 10px; box-sizing: border-box; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                   <img src="/icon_iyf.png" alt="logo" style="width:28px;height:28px;object-fit:contain;" />
-                  <div style="font-weight:700;color:${accent};font-size:0.85rem;">16e édition</div>
+                  <div style="font-weight:700;color:${style.text};font-size:0.85rem;">16e édition</div>
                 </div>
-                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:10px;color:${accent};">Youth Leaders Camp</div>
-                <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${accent};">${typeValue}</div>
+                <div style="text-align:center;font-weight:800;font-size:1rem;margin-bottom:10px;color:${style.text};">Youth Leaders Camp</div>
+                <div style="text-align:center;font-weight:700;margin-bottom:8px;color:${style.text};">${typeValue}</div>
               </div>
               <div>
-                <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Nom :</span> <strong>${nom}</strong></div>
-                <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:#0f172a;"><span style="color:#475569;">Prénom :</span> <strong>${prenom}</strong></div>
-                <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:#0f172a;"><span style="color:#475569;">Classe :</span> <strong>${classe}</strong></div>
+                <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:${style.text};"><span style="color:${style.text};">Nom :</span> <strong>${nom}</strong></div>
+                <div style="text-align:left;font-size:0.95rem;margin-bottom:6px;color:${style.text};"><span style="color:${style.text};">Prénom :</span> <strong>${prenom}</strong></div>
+                <div style="text-align:left;font-size:0.95rem;margin-bottom:12px;color:${style.text};"><span style="color:${style.text};">Classe :</span> <strong>${classe}</strong></div>
               </div>
                 <div style="display:flex;justify-content:center;align-items:center;flex-direction:column;">
                 <img src="${item.qrDataUrl}" alt="QR code" style="width:52mm;height:52mm;object-fit:contain;" />
@@ -692,9 +705,13 @@ export default function AdminParticipantsValidated() {
                 <span className="field-label">Staff</span>
                 <input className="input" type="number" min="0" value={anonymousCounts.staff} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, staff: e.target.value }))} />
               </label>
-              <label className="field" style={{ minWidth: 140, margin: 0 }}>
-                <span className="field-label">Participants</span>
-                <input className="input" type="number" min="0" value={anonymousCounts.participants} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, participants: e.target.value }))} />
+              <label className="field" style={{ minWidth: 150, margin: 0 }}>
+                <span className="field-label">Participants hommes</span>
+                <input className="input" type="number" min="0" value={anonymousCounts.participantsHomme} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, participantsHomme: e.target.value }))} />
+              </label>
+              <label className="field" style={{ minWidth: 150, margin: 0 }}>
+                <span className="field-label">Participants femmes</span>
+                <input className="input" type="number" min="0" value={anonymousCounts.participantsFemme} onChange={(e) => setAnonymousCounts((prev) => ({ ...prev, participantsFemme: e.target.value }))} />
               </label>
               <label className="field" style={{ minWidth: 140, margin: 0 }}>
                 <span className="field-label">Volontaires</span>
