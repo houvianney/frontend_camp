@@ -41,7 +41,7 @@ function getParticipantBadgeStyle(typeParticipant?: string | null, sexe?: string
       return { border: '#2563eb', background: '#eff6ff', text: '#1d4ed8', label: 'Participant homme' };
     }
     if (normalizedSexe === 'f' || normalizedSexe === 'feminin' || normalizedSexe === 'féminin') {
-      return { border: '#dfe7f0', background: '#ffffff', text: '#111827', label: 'Participant femme' };
+      return { border: '#ec4899', background: '#fdf2f8', text: '#9d174d', label: 'Participant femme' };
     }
     return { border: '#2563eb', background: '#eff6ff', text: '#1d4ed8', label: 'Participant' };
   }
