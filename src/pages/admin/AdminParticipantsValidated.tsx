@@ -186,10 +186,6 @@ export default function AdminParticipantsValidated() {
       alert('Veuillez renseigner tous les champs obligatoires : Nom, Prénom, Sexe, Contact, Montant (1–20 000), Type et Localité.');
       return;
     }
-    if ((formType === 'PARTICIPANT' || formType === 'VOLONTAIRE') && !formSource.trim()) {
-      alert('Veuillez indiquer comment le participant a entendu parler de nous.');
-      return;
-    }
 
     try {
       const payload = {
@@ -455,7 +451,8 @@ export default function AdminParticipantsValidated() {
     if (!term) return valides;
 
     return valides.filter((participant) => {
-      const combined = `${participant.nom || ''} ${participant.prenom || ''} ${participant.contact || ''} ${participant.localite?.nom || ''} ${participant.source || ''}`.toLowerCase();
+      const badgeCode = participant.anonymousNumber != null ? String(participant.anonymousNumber).padStart(4, '0') : '';
+      const combined = `${participant.nom || ''} ${participant.prenom || ''} ${participant.contact || ''} ${participant.localite?.nom || ''} ${participant.source || ''} ${badgeCode} ${participant.anonymousNumber ?? ''}`.toLowerCase();
       return combined.includes(term);
     });
   }, [valides, search]);
@@ -601,7 +598,7 @@ export default function AdminParticipantsValidated() {
           </div>
           <label className="field" style={{ minWidth: 160, margin: 0 }}>
             <span className="field-label">Recherche</span>
-            <input className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, prénom, contact..." />
+            <input className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, prénom, contact, code badge..." />
           </label>
           <label className="field" style={{ minWidth: 160, margin: 0 }}>
             <span className="field-label">Sexe</span>
@@ -751,12 +748,24 @@ export default function AdminParticipantsValidated() {
               <div className="form-row inline">
                 <label>Sexe * <select className="input" value={formSexe} onChange={(e) => setFormSexe(e.target.value)}><option value="">Sélectionner</option><option value="M">Masculin</option><option value="F">Féminin</option></select></label>
                 <label>Type * <select className="input" value={formType} onChange={(e) => setFormType(e.target.value)}><option value="PARTICIPANT">Participant</option><option value="STAFF">Staff</option><option value="ENSEIGNANT">Enseignant</option><option value="VOLONTAIRE">Volontaire</option></select></label>
-                <label>Type staff <input className="input" value={formTypeStaff} onChange={(e) => setFormTypeStaff(e.target.value)} /></label>
+                <label>Type staff <select className="input" value={formTypeStaff} onChange={(e) => setFormTypeStaff(e.target.value)}>
+                  <option value="">Sélectionner</option>
+                  <option value="Entretien">Entretien</option>
+                  <option value="Podium">Podium</option>
+                  <option value="Formateur Académie">Formateur Académie</option>
+                  <option value="Media">Media</option>
+                  <option value="Cuisine">Cuisine</option>
+                  <option value="Accueil">Accueil</option>
+                  <option value="Sécurité">Sécurité</option>
+                  <option value="Prestations">Prestations</option>
+                  <option value="Inscription">Inscription</option>
+                  <option value="Organisateurs">Organisateurs</option>
+                </select></label>
               </div>
               <div className="form-row inline">
                 <label>Contact * <input className="input" value={formContact} onChange={(e) => setFormContact(e.target.value)} /></label>
                 {(formType === 'PARTICIPANT' || formType === 'VOLONTAIRE') && (
-                  <label>Comment avez-vous entendu parler de nous *
+                  <label>Comment avez-vous entendu parler de nous
                     <select className="input" value={formSource} onChange={(e) => setFormSource(e.target.value)}>
                       <option value="">Sélectionner</option>
                       <option value="Facebook">Facebook</option>
