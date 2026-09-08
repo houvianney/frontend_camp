@@ -389,9 +389,10 @@ export default function AdminParticipantsValidated() {
         <div style="width:20%;">${p.nom || '—'}</div>
         <div style="width:20%;">${p.prenom || '—'}</div>
         <div style="width:10%;">${p.sexe || '—'}</div>
-        <div style="width:14%;">${p.typeParticipant || '—'}</div>
-        <div style="width:12%; text-align:right;">${Number(p.montantPaye || 0)} FCFA</div>
-        <div style="width:16%;">${p.localite?.nom || '—'}</div>
+        <div style="width:12%;">${p.typeParticipant || '—'}</div>
+        <div style="width:14%;">${p.contact || '—'}</div>
+        <div style="width:10%; text-align:right;">${Number(p.montantPaye || 0)} FCFA</div>
+        <div style="width:14%;">${p.localite?.nom || '—'}</div>
       </div>
     `).join('');
 
@@ -414,12 +415,13 @@ export default function AdminParticipantsValidated() {
             <div class="table">
               <div class="row" style="font-weight:700; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:6px;">
                 <div style="width:8%;">N°</div>
-                <div style="width:20%;">Nom</div>
-                <div style="width:20%;">Prénoms</div>
-                <div style="width:10%;">Sexe</div>
-                <div style="width:14%;">Type</div>
-                <div style="width:12%; text-align:right;">Montant</div>
-                <div style="width:16%;">Localité</div>
+                <div style="width:15%;">Nom</div>
+                <div style="width:15%;">Prénoms</div>
+                <div style="width:5%;">Sexe</div>
+                <div style="width:15%;">Type</div>
+                <div style="width:15%;">Contact</div>
+                <div style="width:15%; text-align:right;">Montant</div>
+                <div style="width:15%;">Localité</div>
               </div>
               ${rows}
             </div>
